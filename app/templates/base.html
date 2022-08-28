@@ -1,0 +1,60 @@
+<!doctype html>
+<html>
+    <head>
+        {% if title %}
+        <title>{{title}} - Datum-B</title>
+        {% else %}
+        <title>Datum-B</title>
+        {% endif %}
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+        a:link, a:visited {
+            color: #fcba03;
+            text-decoration: none;
+            font-family: monospace;
+        }
+        a:hover: {
+            color: #fcba03;
+            text-decoration: underline;
+            font-family: monospace;
+        }
+        .center {
+            margin: auto;
+            font-size: 1em;
+            float: center;
+            width: 60%;
+            padding: 4px;
+        }
+        h1, h2: {
+            font-size: 2.5em;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+        .datestamp {
+            font-size: 0.9em;
+            font-style: italic;
+            font-family: serif;
+        }
+        .entry {
+            font-size: 1em;
+            font-family: Segoe UI, Arial, Helvetica, sans-serif;
+        }
+        @media only screen and (max-width: 800px) {
+            .center {
+                width: 100%;
+            }
+        }
+        </style>
+    </head>
+
+    <body bgcolor="#171614" text="white">
+    <div class="center">
+        <img src="{{url_for('static', filename='dblogo.png')}}" width="80%" max-width="50%" height="auto" alt-text="Made with PowerPoint">
+        {% block content %}{% endblock %}
+        <hr>
+        <h2>About</h2>
+        <p class="entry">I am a new software engineer with nearly a decade of specialized experience in mechanical engineering. This blog chronicles my journey with coding, agile hardware development, and leadership principles.</p>
+        <p><a href="mailto:thoughts@datum-b.com">Contact</a>
+        <p><p>© 2022<p style="font-size: .2em">The views expressed here are solely my own and do not reflect those of my employer.</p>
+    </div>
+    </body>
+</html>

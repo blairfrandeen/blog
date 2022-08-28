@@ -6,3 +6,4 @@ favicon.ico
 .well-known/
 *.pyc
 tmp/*
+*.swp

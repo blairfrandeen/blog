@@ -1,49 +1,11 @@
-<html>
-    <head>
-        <title>Datum-B</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <style>
-        a:link, a:visited {
-            color: #fcba03;
-            text-decoration: none;
-            font-family: monospace;
-        }
-        a:hover: {
-            color: #fcba03;
-            text-decoration: underline;
-            font-family: monospace;
-        }
-        .center {
-            margin: auto;
-            font-size: 1em;
-            float: center;
-            width: 60%;
-            padding: 4px;
-        }
-        h1, h2: {
-            font-size: 2.5em;
-            font-family: Arial, Helvetica, sans-serif;
-        }
-        .datestamp {
-            font-size: 0.9em;
-            font-style: italic;
-            font-family: serif;
-        }
-        .entry {
-            font-size: 1em;
-            font-family: Segoe UI, Arial, Helvetica, sans-serif;
-        }
-        @media only screen and (max-width: 800px) {
-            .center {
-                width: 100%;
-            }
-        }
-        </style>
-    </head>
+{% extends "base.html" %}
+{% block content %}
+        {% for post in posts %}
+        <h1 class="entry_title">{{ post.title }}</h1>
+        <p class="datestamp">{{ post.date }}</p>
+        <p class="entry">{{ post.intro }}</p>
+        {% endfor %}
 
-    <body bgcolor="#171614" text="white">
-    <div class="center">
-        <img src="dblogo.png" width="80%" max-width="50%" height="auto" alt-text="Made with PowerPoint">
         <h1 class="entry_title">Time to Dual-Class</h1>
         <p class="datestamp">July 25th, 2022</p>
         <p class="entry">I've been a mechanical engineer for nearly a decade, and it's time to branch out. My near-term focus is to branch my career towards software engineering while continuing to leverage my mechanical engineering skillset. In this post I'll explore my discontent with my current employment, which stems from geographic requirements, lack of desirable upward mobility, and knowledge-management practices that could use improvement.
@@ -63,10 +25,5 @@ Finally, mechanical engineers could be much better at their jobs. Ultimately, me
 Yes, I'm hard on us, and I say this because I want us to do better. Our work relies heavily on computation, and quality hardware is as much the result of good software and knowledge management as it is physical craftmanship. 
 
 <p class="entry">I'm going in on the bet that I can be happier, better compensated, more effective, and more independent in my career by combining software skills with my existing mechanical engineering skillset. This blog serves as a record of my thoughts, progress, ideas, projects, struggles, and lessons learned along the way. I have no idea if anyone will read this, and I don't have much of a plan to market it. And I've had an itch to write it for months now, so it is written.</p>
-        <h2>About</h2>
-        <p class="entry">I am a new software engineer with nearly a decade of specialized experience in mechanical engineering. This blog chronicles my journey with coding, agile hardware development, and leadership principles.</p>
-        <p><a href="mailto:thoughts@datum-b.com">Contact</a>
-        <p><p>© 2022<p style="font-size: .2em">The views expressed here are solely my own and do not reflect those of my employer.</p>
-    </div>
-    </body>
-</html>
+
+{% endblock %}
