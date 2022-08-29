@@ -2,13 +2,20 @@ import os
 import re
 from datetime import datetime, date
 from itertools import accumulate
+from typing import Optional
+from shutil import copyfile
 
 from app import db
 from app.models import Post
 
+NOTES_DIRECTORY = "/mnt/c/users/blair/my drive/notes"
+POSTS_DIRECTORY = "posts"
 
-def make_post(markdown_file: str) -> Post:
+
+def make_post(markdown_file: Optional[str] = None) -> Post:
     """Generate a post from a markdown source file."""
+    if not markdown_file:
+        markdown_file = copy_post()
     title, content = parse_markdown(markdown_file)
     handle = get_handle(title)
     new_post = Post(
@@ -35,6 +42,21 @@ def parse_markdown(markdown_file: str) -> tuple[str, str]:
     html_str = html_str.split("</h1>")[1].split("<hr />")[0]
 
     return title, html_str
+
+
+def find_new_entry() -> str:
+    os.chdir(NOTES_DIRECTORY)
+    file_selection = os.popen("fzf")
+    file_handle = NOTES_DIRECTORY + file_selection.read().strip()[1:]
+    os.chdir(os.path.join(os.path.expanduser("~"), "site"))
+    return file_handle
+
+
+def copy_post() -> str:
+    post_dir = find_new_entry()
+    file_name = post_dir.split("/")[-1]
+    new_path = copyfile(post_dir, os.path.join(POSTS_DIRECTORY, file_name))
+    return new_path
 
 
 def get_title(html_str: str) -> str:
