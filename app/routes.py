@@ -1,5 +1,7 @@
-from flask import render_template, url_for
+import datetime
+from flask import render_template, url_for, Markup
 from app import app
+from app.models import Post
 
 
 @app.route("/")
@@ -17,4 +19,8 @@ def index():
             "intro": "I have had a few false starts in my coding journey. The first started in late 2017. I came across Free Code Camp and started doing some of their JavaScript tutorials. I practiced doing short challenges on CodeWars, as I figured this would be a good way to build some fundamentals. I gave up on JS after not very long - I could swing it if I wanted to, but it isn't very applicable to engineering, and I didn't want to be a web developer.",
         },
     ]
+    posts = Post.query.filter(~Post.hidden).order_by(Post.post_ts.desc()).all()
+    for post in posts:
+        post.datestr = datetime.datetime.date(post.post_ts).isoformat()
+        post.content = Markup(post.content)
     return render_template("index.html", posts=posts)
