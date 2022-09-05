@@ -55,8 +55,23 @@ def find_new_entry() -> str:
 def copy_post() -> str:
     post_dir = find_new_entry()
     file_name = post_dir.split("/")[-1]
+    post_images = find_images(os.path.join(NOTES_DIRECTORY, file_name))
+    for image in post_images:
+        img_path = copyfile(
+            os.path.join(NOTES_DIRECTORY, image), os.path.join(POSTS_DIRECTORY, image)
+        )
+        print("Copied ", img_path)
     new_path = copyfile(post_dir, os.path.join(POSTS_DIRECTORY, file_name))
     return new_path
+
+
+def find_images(markdown_file: str) -> list[str]:
+    """Look through a markdown file and identify any images that are embedded.
+    Assumes images are in same folder as markdown file"""
+    img_re = re.compile(r"!\[\[(.+)\]\]")
+    with open(markdown_file, "r") as markdown_fh:
+        markdown_text = "\n".join([line for line in markdown_fh])
+    return re.findall(img_re, markdown_text)
 
 
 def get_title(html_str: str) -> str:
