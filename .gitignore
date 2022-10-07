@@ -2,7 +2,6 @@ venv/
 __pycache__/
 .flaskenv
 favicon.gif
-favicon.ico
 .well-known/
 *.pyc
 tmp/*
