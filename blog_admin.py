@@ -1,3 +1,13 @@
+"""
+blog_admin.py
+Tools for posting & administering my roll-your-own blog.
+
+My blog entries are typically composed using Obsidian in Windows,
+and the blog administration and backend is done using WSL Ubuntu.
+This set of tools exists in order to easily transfer files
+between the two systems, and remove the friction in doing so.
+"""
+
 import os
 import re
 from datetime import datetime, date
@@ -8,13 +18,32 @@ from shutil import copyfile
 from app import db
 from app.models import Post
 
+# Directory on computer where posts are composed
+# Equal to Obsidian vault root
 NOTES_DIRECTORY = "/mnt/c/users/blair/my drive/notes"
-POSTS_DIRECTORY = "posts"
+
+# Location of posts files in site working directory
+POSTS_DIRECTORY = "./posts"
+
+
+# TODO: Improve type hints for Path-like objects
 
 
 def make_post(markdown_file: Optional[str] = None) -> Post:
-    """Generate a post from a markdown source file."""
+    """Generate a post from a markdown source file. Adds
+    the post to the blog database.
+
+    Arguments:
+        markdown_file:  Markdown file to generate the post from.
+                        If no argument passed, fzf search is opened
+                        in the notes directory.
+
+    Returns:
+        Post object.
+    """
     if not markdown_file:
+        # If no specific file path passed, open
+        # fuzzy finder search
         markdown_file = copy_post()
     title, content = parse_markdown(markdown_file)
     handle = get_handle(title)
@@ -30,11 +59,54 @@ def make_post(markdown_file: Optional[str] = None) -> Post:
     return new_post
 
 
+def copy_post(post_file: Optional[str] = None) -> str:
+    """Copy a target file and any associated images.
+    to the posts directory. Return the path of the
+    copied post."""
+    if not post_file:
+        # Get the new entry using fzf
+        post_file = fuzzy_find_new_entry()
+    file_name = os.path.basename(post_file)
+
+    # Get the text from the entry
+    with open(entry_path, "r") as markdown_fh:
+        markdown_text = "\n".join([line for line in markdown_fh])
+
+    # Find any images that are part of the post
+    post_images = find_images(markdown_text)
+    for image in post_images:
+        img_path = copyfile(
+            os.path.join(NOTES_DIRECTORY, image[0]),
+            os.path.join(POSTS_DIRECTORY, image[0]),
+        )
+        print("Copied ", img_path)
+
+    # Copy the post to the local directory
+    new_path = copyfile(post_dir, os.path.join(POSTS_DIRECTORY, file_name))
+
+    return new_path
+
+
+def fuzzy_find_new_entry(search_dir: str = NOTES_DIRECTORY) -> Optional[str]:
+    """User fuzzy finder to identify a file in a given
+    directory. Return the file path of the selected file."""
+    starting_dir = os.getcwd()
+    os.chdir(search_dir)
+    file_selection = os.popen("fzf").read()
+    os.chdir(starting_dir)
+    if file_selection:
+        file_handle = os.path.join(search_dir + file_selection.strip()[1:])
+        return file_handle
+    return None
+
+
 def parse_markdown(markdown_file: str) -> tuple[str, str]:
     """Parse a markdown file into HTML"""
     if not os.path.isfile(markdown_file):
         raise FileNotFoundError(f"Error: {markdown_file} not found.")
-    pdoc_cmd = f'pandoc -f markdown -t html "{markdown_file}"'
+    # TODO: use the --extract_media=DIR pandoc option
+    # instead of having to find them with copy_post
+    pdoc_cmd = f'pandoc -f markdown+implicit_figures -t html5 "{markdown_file}"'
     pdoc_output = os.popen(pdoc_cmd)
     html_str = pdoc_output.read()
     title = get_title(html_str)
@@ -44,34 +116,21 @@ def parse_markdown(markdown_file: str) -> tuple[str, str]:
     return title, html_str
 
 
-def find_new_entry() -> str:
-    os.chdir(NOTES_DIRECTORY)
-    file_selection = os.popen("fzf")
-    file_handle = NOTES_DIRECTORY + file_selection.read().strip()[1:]
-    os.chdir(os.path.join(os.path.expanduser("~"), "site"))
-    return file_handle
-
-
-def copy_post() -> str:
-    post_dir = find_new_entry()
-    file_name = post_dir.split("/")[-1]
-    post_images = find_images(os.path.join(NOTES_DIRECTORY, file_name))
-    for image in post_images:
-        img_path = copyfile(
-            os.path.join(NOTES_DIRECTORY, image), os.path.join(POSTS_DIRECTORY, image)
-        )
-        print("Copied ", img_path)
-    new_path = copyfile(post_dir, os.path.join(POSTS_DIRECTORY, file_name))
-    return new_path
-
-
-def find_images(markdown_file: str) -> list[str]:
+def find_images(markdown_text: str) -> list[str]:
     """Look through a markdown file and identify any images that are embedded.
     Assumes images are in same folder as markdown file"""
-    img_re = re.compile(r"!\[\[(.+)\]\]")
-    with open(markdown_file, "r") as markdown_fh:
-        markdown_text = "\n".join([line for line in markdown_fh])
-    return re.findall(img_re, markdown_text)
+
+    images = []
+    # Find images in the form ![[image.jpg|Caption]]
+    wiki_img_re = re.compile(r"!\[\[([\w.-]+)\|?(.+)?\]\]")
+    images += re.findall(wiki_img_re, markdown_text)
+
+    # Find images in the form ![Caption](Image.jpg)
+    md_img_re = re.compile(r"!\[(.*)\]\((.+)\)")
+
+    # Switch order to match wiki format
+    images += [(img, cap) for cap, img in re.findall(md_img_re, markdown_text)]
+    return images
 
 
 def get_title(html_str: str) -> str:
