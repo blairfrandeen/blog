@@ -13,4 +13,4 @@ class Post(db.Model):
     hidden = db.Column(db.Boolean, default=False)
 
     def __repr__(self):
-        return f"{self.id}: {self.title}"
+        return f"{self.id}: {self.handle} ({self.post_ts.strftime('%D %X')})"
