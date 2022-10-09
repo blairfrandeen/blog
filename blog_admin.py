@@ -29,7 +29,7 @@ NOTES_DIRECTORY = "/mnt/c/users/blair/my drive/notes"
 POSTS_DIRECTORY = "./posts"
 
 # Location of images for the flask app
-IMAGES_DIRECTORY = "./app/static"
+IMAGES_DIRECTORY = "./app/static/post_images"
 
 # WEBHOST SSH TARGET
 WEBHOST = "***REMOVED***@aurora.***REMOVED***.com"
@@ -92,6 +92,16 @@ def list_posts() -> None:
         print(post, Fore.RESET)
 
 
+def push_post_images(post_id: int):
+    post_content = db.session.get(Post, post_id).content
+    image_re = re.compile(r'<img src="(.+?)"')
+    post_images = re.findall(image_re, post_content)
+    for image in post_images:
+        img_path = os.path.join(IMAGES_DIRECTORY, os.path.basename(image))
+        scp_cmd = f"scp {img_path} {WEBHOST}:datum-b.com/app/static/post_images"
+        os.popen(scp_cmd)
+
+
 def toggle_hidden(post_id: int) -> None:
     """Toggle a post's hidden status.
     Arguments:
@@ -103,9 +113,10 @@ def toggle_hidden(post_id: int) -> None:
 
 
 def replace_image_sources(html_source: str) -> str:
+    """Replace links to images with the correct path."""
     image_re = re.compile(r'<img src="(.+?)"')
     for image in re.findall(image_re, html_source):
-        html_source = html_source.replace(image, f"/static/{image}")
+        html_source = html_source.replace(image, f"/static/post_images/{image}")
     return html_source
 
 
