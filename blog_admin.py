@@ -92,11 +92,15 @@ def list_posts() -> None:
         print(post, Fore.RESET)
 
 
-def push_post_images(post_id: int):
+def push_post_images(post_id: int) -> None:
+    """Push images associated with a post_id
+    to the web server.
+
+    Arguments:
+        post_id:    Post ID
+    """
     post_content = db.session.get(Post, post_id).content
-    image_re = re.compile(r'<img src="(.+?)"')
-    post_images = re.findall(image_re, post_content)
-    for image in post_images:
+    for image in find_html_images(post_content):
         img_path = os.path.join(IMAGES_DIRECTORY, os.path.basename(image))
         scp_cmd = f"scp {img_path} {WEBHOST}:datum-b.com/app/static/post_images"
         os.popen(scp_cmd)
@@ -112,10 +116,15 @@ def toggle_hidden(post_id: int) -> None:
     db.session.commit()
 
 
+def find_html_images(html_source: str) -> list[str]:
+    """Find all image paths in an HTML source."""
+    image_re = re.compile(r'<img src="(.+?)"')
+    return re.findall(image_re, html_source)
+
+
 def replace_image_sources(html_source: str) -> str:
     """Replace links to images with the correct path."""
-    image_re = re.compile(r'<img src="(.+?)"')
-    for image in re.findall(image_re, html_source):
+    for image in find_html_images(html_source):
         html_source = html_source.replace(image, f"/static/post_images/{image}")
     return html_source
 
@@ -128,13 +137,16 @@ def copy_post(post_file: Optional[str] = None) -> str:
         # Get the new entry using fzf
         post_file = fuzzy_find_new_entry()
     file_name = os.path.basename(post_file)
+    if post_file is None:
+        print("Aborted.")
+        exit(-1)
 
     # Get the text from the entry
     with open(post_file, "r") as markdown_fh:
         markdown_text = "\n".join([line for line in markdown_fh])
 
     # Find any images that are part of the post
-    post_images = find_images(markdown_text)
+    post_images = find_markdown_images(markdown_text)
     for image in post_images:
         img_path = copyfile(
             os.path.join(NOTES_DIRECTORY, image[0]),
@@ -177,9 +189,16 @@ def parse_markdown(markdown_file: str) -> tuple[str, str]:
     return title, html_str
 
 
-def find_images(markdown_text: str) -> list[str]:
+def find_markdown_images(markdown_text: str) -> list[tuple[str, str]]:
     """Look through a markdown file and identify any images that are embedded.
-    Assumes images are in same folder as markdown file"""
+    Assumes images are in same folder as markdown file.
+
+    Arguments:
+        markdown_text:  text of markdown to search.
+
+    Returns:
+        List of tuples containing image path and caption.
+    """
 
     images = []
     # Find images in the form ![[image.jpg|Caption]]

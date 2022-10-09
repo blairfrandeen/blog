@@ -1,6 +1,6 @@
 import pytest
 
-from blog_admin import get_handle, find_images
+from blog_admin import get_handle, find_markdown_images
 
 
 @pytest.mark.parametrize(
@@ -45,4 +45,4 @@ def test_get_handle(title, handle, max_length):
     ],
 )
 def test_find_images(md_string, img_list, monkeypatch):
-    assert find_images(md_string) == img_list
+    assert find_markdown_images(md_string) == img_list
