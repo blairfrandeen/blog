@@ -8,6 +8,7 @@
         {% endif %}
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}"/>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre">
         <style>
         a:link, a:visited {
             color: #fcba03;
@@ -24,19 +25,21 @@
             font-size: 1em;
             float: center;
             width: 60%;
-            padding: 4px;
+            padding: 15px;
+            background-color: #1d1e1f;
         }
         h1, h2: {
             font-size: 2.5em;
-            font-family: Arial, Helvetica, sans-serif;
+            font-style: bold;
+            font-family: Frank Ruhl Libre, serif;
         }
         .datestamp {
             font-size: 0.9em;
             font-style: italic;
-            font-family: serif;
+            font-family: Frank Ruhl Libre, serif;
         }
         img {
-            width: 600px;
+            width: 90%;
             max-width: 100%;
             height: auto;
         }
@@ -48,7 +51,7 @@
         }
         p {
             font-size: 1em;
-            font-family: Segoe UI, Arial, Helvetica, sans-serif;
+            font-family: Frank Ruhl Libre, serif;
         }
         @media only screen and (max-width: 800px) {
             .center {
@@ -60,7 +63,7 @@
 
     <body bgcolor="#171614" text="white">
     <div class="center">
-        <img src="{{url_for('static', filename='dblogo.png')}}" width="80%" max-width="50%" height="auto" alt-text="Made with PowerPoint">
+        <img src="{{url_for('static', filename='dblogo.png')}}" width="60%" max-width="50%" height="auto" alt="Made with PowerPoint">
         {% block content %}{% endblock %}
         <hr>
         <h2>About</h2>
