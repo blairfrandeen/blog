@@ -8,3 +8,4 @@ tmp/*
 *.swp
 posts/
 blog.db
+app/static/post_images/
