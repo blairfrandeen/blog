@@ -12,8 +12,11 @@ import os
 import re
 from datetime import datetime, date
 from itertools import accumulate
+from pprint import pprint
 from typing import Optional
 from shutil import copyfile
+
+from colorama import Fore
 
 from app import db
 from app.models import Post
@@ -24,6 +27,12 @@ NOTES_DIRECTORY = "/mnt/c/users/blair/my drive/notes"
 
 # Location of posts files in site working directory
 POSTS_DIRECTORY = "./posts"
+
+# Location of images for the flask app
+IMAGES_DIRECTORY = "./app/static"
+
+# WEBHOST SSH TARGET
+WEBHOST = "***REMOVED***@aurora.***REMOVED***.com"
 
 
 # TODO: Improve type hints for Path-like objects
@@ -46,17 +55,58 @@ def make_post(markdown_file: Optional[str] = None) -> Post:
         # fuzzy finder search
         markdown_file = copy_post()
     title, content = parse_markdown(markdown_file)
+    content = replace_image_sources(content)
     handle = get_handle(title)
     new_post = Post(
         title=title,
         content=content,
         handle=handle,
-        hidden=True,
+        hidden=False,
     )
     db.session.add(new_post)
     db.session.commit()
 
     return new_post
+
+
+def push_db() -> None:
+    """Push the updated blog database
+    to the datum_b server."""
+    # push the database file
+    scp_cmd = f"scp blog.db {WEBHOST}:datum-b.com"
+    os.popen(scp_cmd)
+
+
+def restart_server() -> None:
+    """Restart the flask app on the server"""
+    restart_cmd = f"ssh {WEBHOST} touch /home/***REMOVED***/datum-b.com/tmp/restart.txt"
+    os.popen(restart_cmd)
+
+
+def list_posts() -> None:
+    """List all posts in the database. Posts
+    colored in grey are hidden."""
+    for post in Post.query.all():
+        if post.hidden:
+            print(Fore.WHITE, end="")
+        print(post, Fore.RESET)
+
+
+def toggle_hidden(post_id: int) -> None:
+    """Toggle a post's hidden status.
+    Arguments:
+        post_id:    The id of the post to be toggled
+    """
+    target_post = db.session.get(Post, post_id)
+    target_post.hidden = False if target_post.hidden else True
+    db.session.commit()
+
+
+def replace_image_sources(html_source: str) -> str:
+    image_re = re.compile(r'<img src="(.+?)"')
+    for image in re.findall(image_re, html_source):
+        html_source = html_source.replace(image, f"/static/{image}")
+    return html_source
 
 
 def copy_post(post_file: Optional[str] = None) -> str:
@@ -69,7 +119,7 @@ def copy_post(post_file: Optional[str] = None) -> str:
     file_name = os.path.basename(post_file)
 
     # Get the text from the entry
-    with open(entry_path, "r") as markdown_fh:
+    with open(post_file, "r") as markdown_fh:
         markdown_text = "\n".join([line for line in markdown_fh])
 
     # Find any images that are part of the post
@@ -77,12 +127,12 @@ def copy_post(post_file: Optional[str] = None) -> str:
     for image in post_images:
         img_path = copyfile(
             os.path.join(NOTES_DIRECTORY, image[0]),
-            os.path.join(POSTS_DIRECTORY, image[0]),
+            os.path.join(IMAGES_DIRECTORY, image[0]),
         )
         print("Copied ", img_path)
 
     # Copy the post to the local directory
-    new_path = copyfile(post_dir, os.path.join(POSTS_DIRECTORY, file_name))
+    new_path = copyfile(post_file, os.path.join(POSTS_DIRECTORY, file_name))
 
     return new_path
 
