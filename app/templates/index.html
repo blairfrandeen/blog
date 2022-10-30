@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
     {% for post in posts %}
-    <h1 class="entry_title">{{ post.title }}</h1>
+    <h1>{{ post.title }}</h1>
     <p class="datestamp">Posted: {{post.datestr}}</p>
     <p class="entry">{{ post.content }}</p>
     {% endfor %}
