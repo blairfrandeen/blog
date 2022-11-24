@@ -5,12 +5,12 @@ from app.models import Post
 
 
 @app.route("/")
-@app.route("/index")
-def index():
+@app.route("/home")
+def home():
     posts = Post.query.filter(~Post.hidden).order_by(Post.post_ts.desc()).all()
     for post in posts:
         post.datestr = datetime.datetime.date(post.post_ts).isoformat()
-        post.content = Markup(post.content)
+        post.content = Markup(post.content).split("\n")[1]
     return render_template("index.html", posts=posts)
 
 
@@ -25,4 +25,4 @@ def blog_post(post_handle):
 
     post.datestr = datetime.datetime.date(post.post_ts).isoformat()
     post.content = Markup(post.content)
-    return render_template("index.html", posts=[post])
+    return render_template("post.html", post=post)

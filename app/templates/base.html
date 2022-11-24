@@ -31,6 +31,7 @@
         }
         .center h1, h2 {
             font-family: 'Segoe UI', sans-serif;
+            color: white;
         }
         .datestamp {
             font-size: 0.9em;
@@ -62,7 +63,9 @@
 
     <body bgcolor="#171614" text="white">
     <div class="center">
+        <a href="{{url_for('home')}}">
         <img src="{{url_for('static', filename='dblogo.png')}}" width="60%" max-width="50%" height="auto" alt="Made with PowerPoint">
+        </a>
         {% block content %}{% endblock %}
         <hr>
         <h2>About</h2>
