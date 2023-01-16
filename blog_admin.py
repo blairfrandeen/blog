@@ -8,6 +8,7 @@ This set of tools exists in order to easily transfer files
 between the two systems, and remove the friction in doing so.
 """
 
+import configparser
 import os
 import re
 from datetime import datetime, date
@@ -21,23 +22,19 @@ from colorama import Fore
 from app import db
 from app.models import Post
 
-# Directory on computer where posts are composed
-# Equal to Obsidian vault root
-NOTES_DIRECTORY = "/mnt/c/users/blair/my drive/notes"
+# Read the configuration file
+config = configparser.ConfigParser()
+config.read("local.cfg")
+local_config = config["DEFAULT"]
 
-# Location of posts files in site working directory
-POSTS_DIRECTORY = "./posts"
-
-# Location of images for the flask app
-IMAGES_DIRECTORY = "./app/static/post_images"
-
-# WEBHOST SSH TARGET
-WEBHOST = "***REMOVED***@aurora.***REMOVED***.com"
-
+# TODO: Access the local_config dictionary directly when one
+# of the below items is needed; removes this block of code
+NOTES_DIRECTORY = local_config["NOTES_DIRECTORY"]
+POSTS_DIRECTORY = local_config["POSTS_DIRECTORY"]
+IMAGES_DIRECTORY = local_config["IMAGES_DIRECTORY"]
+WEBHOST = local_config["WEBHOST"]
 
 # TODO: Improve type hints for Path-like objects
-
-
 def make_post(markdown_file: Optional[str] = None) -> Post:
     """Generate a post from a markdown source file. Adds
     the post to the blog database.
