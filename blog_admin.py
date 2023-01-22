@@ -53,6 +53,7 @@ def make_post(markdown_file: Optional[str] = None) -> Post:
         markdown_file = copy_post()
     title, content = parse_markdown(markdown_file)
     content = replace_image_sources(content)
+    content = replace_internal_links(content)
     handle = get_handle(title)
     new_post = Post(
         title=title,
@@ -231,12 +232,9 @@ def replace_internal_links(html_str: str) -> str:
     internal_links: list[tuple[str, str]] = list(
         map(parse_internal_link, internal_link_text)
     )
-    print(f"{internal_links=}")
 
     # Validate the internal links and get handles
     internal_link_handles = list(map(get_link_handle, internal_links))
-    print(f"{internal_link_handles=}")
-    print(internal_link_text)
 
     # Replace the links in the HTML string
     for index, link in enumerate(internal_link_text):
