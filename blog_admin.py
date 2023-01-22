@@ -165,7 +165,9 @@ def fuzzy_find_new_entry(search_dir: str = NOTES_DIRECTORY) -> Optional[str]:
     file_selection = os.popen("fzf").read()
     os.chdir(starting_dir)
     if file_selection:
-        file_handle = os.path.join(search_dir + file_selection.strip()[1:])
+        # TODO: Investigate why code that worked on wsl removed the first
+        # charactar for file_selection. Seems non-sensical and is working on Ubuntu
+        file_handle = os.path.join(search_dir + file_selection.strip())
         return file_handle
     return None
 
@@ -208,6 +210,66 @@ def find_markdown_images(markdown_text: str) -> list[tuple[str, str]]:
     # Switch order to match wiki format
     images += [(img, cap) for cap, img in re.findall(md_img_re, markdown_text)]
     return images
+
+
+def get_internal_links(html_str: str) -> list[str]:
+    # Find all inter-blog links
+    internal_link_re = re.compile(r"\[\[(.+?)\]\]")
+
+    # List of all links found in html string as strings
+    internal_link_text = re.findall(internal_link_re, html_str)
+
+    return internal_link_text
+
+
+def replace_internal_links(html_str: str) -> str:
+    # Get internal link text
+    internal_link_text: list[str] = get_internal_links(html_str)
+
+    # Parse the internal links
+    # Links in html string as tuples of title, link text
+    internal_links: list[tuple[str, str]] = list(
+        map(parse_internal_link, internal_link_text)
+    )
+    print(f"{internal_links=}")
+
+    # Validate the internal links and get handles
+    internal_link_handles = list(map(get_link_handle, internal_links))
+    print(f"{internal_link_handles=}")
+    print(internal_link_text)
+
+    # Replace the links in the HTML string
+    for index, link in enumerate(internal_link_text):
+        html_str = html_str.replace(
+            f"[[{link}]]", generate_link_href(internal_link_handles[index])
+        )
+    # Return new HTML string
+    return html_str
+
+
+def generate_link_href(link: tuple[str, str]) -> str:
+    return f"<a href='/blog/{link[0]}'>{link[1]}</a>"
+
+
+def get_link_handle(link: tuple[str, str]) -> tuple[str, str]:
+    """Given a post title, return the handle.
+    Verify that the handle exists and the post is not hidden"""
+    post_title = link[0]
+    link_text = link[1]
+    handle = get_handle(post_title)
+    link_query = Post.query.filter_by(handle=handle).filter_by(hidden=False)
+    if len(list(link_query)) == 1:
+        return handle, link_text
+    raise Exception(f"No unhidden posts found for {handle}")
+
+
+def parse_internal_link(link: str) -> tuple[str, str]:
+    """For a given inter-blog link, return the title of the post being linked to
+    and the link text to use."""
+    link_elements = link.split("|")
+    if len(link_elements) == 1:
+        return (link_elements[0], link_elements[0])
+    return (link_elements[0], link_elements[1])
 
 
 def get_title(html_str: str) -> str:

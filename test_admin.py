@@ -1,6 +1,14 @@
 import pytest
 
-from blog_admin import get_handle, find_markdown_images
+import blog_admin
+from blog_admin import (
+    find_markdown_images,
+    generate_link_href,
+    get_handle,
+    get_internal_links,
+    parse_internal_link,
+    replace_internal_links,
+)
 
 
 @pytest.mark.parametrize(
@@ -44,5 +52,58 @@ def test_get_handle(title, handle, max_length):
         ),
     ],
 )
-def test_find_images(md_string, img_list, monkeypatch):
+def test_find_images(md_string, img_list):
     assert find_markdown_images(md_string) == img_list
+
+
+@pytest.mark.parametrize(
+    "html_string, links",
+    [
+        (
+            "I would like to have [[simple links]] as well as [[these|complex links]]",
+            ["simple links", "these|complex links"],
+        )
+    ],
+)
+def test_get_internal_links(html_string, links):
+    assert get_internal_links(html_string) == links
+
+
+@pytest.mark.parametrize(
+    "link, expected",
+    [
+        ("simple link", ("simple link", "simple link")),
+        ("complex link|like this", ("complex link", "like this")),
+    ],
+)
+def test_parse_link(link, expected):
+    assert parse_internal_link(link) == expected
+
+
+@pytest.mark.parametrize(
+    "html_string, expected",
+    [
+        (
+            "Here is a [[simple link]]",
+            "Here is a <a href='/blog/simple_link'>simple link</a>",
+        )
+    ],
+)
+def test_replace_internal_links(html_string, expected, monkeypatch):
+    monkeypatch.setattr(
+        "blog_admin.get_link_handle", lambda _: ("simple_link", "simple link")
+    )
+    assert replace_internal_links(html_string) == expected
+
+
+@pytest.mark.parametrize(
+    "link, expected",
+    [
+        (
+            ("some_handle", "Can you handle it?"),
+            "<a href='/blog/some_handle'>Can you handle it?</a>",
+        )
+    ],
+)
+def test_link_href(link: tuple[str, str], expected: str):
+    assert generate_link_href(link) == expected
