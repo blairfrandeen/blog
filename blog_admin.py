@@ -17,6 +17,7 @@ from pprint import pprint
 from typing import Optional
 from shutil import copyfile
 
+import click
 from colorama import Fore
 
 from app import db
@@ -156,6 +157,16 @@ def copy_post(post_file: Optional[str] = None) -> str:
     new_path = copyfile(post_file, os.path.join(POSTS_DIRECTORY, file_name))
 
     return new_path
+
+
+def edit_post(post_id: int) -> None:
+    """Edit the content of a post"""
+    target_post = db.session.get(Post, post_id)
+    edited_content = click.edit(target_post.content, editor="vim")
+    target_post.content = new_content
+    # change the post updated timestamp
+    target_post.post_update_ts = datetime.utcnow
+    db.session.commit()
 
 
 def fuzzy_find_new_entry(search_dir: str = NOTES_DIRECTORY) -> Optional[str]:
