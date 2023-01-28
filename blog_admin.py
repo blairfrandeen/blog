@@ -28,6 +28,7 @@ config = configparser.ConfigParser()
 config.read("local.cfg")
 local_config = config["DEFAULT"]
 
+# TODO: Improve type hints for Path-like objects
 # TODO: Access the local_config dictionary directly when one
 # of the below items is needed; removes this block of code
 NOTES_DIRECTORY = local_config["NOTES_DIRECTORY"]
@@ -35,7 +36,13 @@ POSTS_DIRECTORY = local_config["POSTS_DIRECTORY"]
 IMAGES_DIRECTORY = local_config["IMAGES_DIRECTORY"]
 WEBHOST = local_config["WEBHOST"]
 
-# TODO: Improve type hints for Path-like objects
+
+@click.group()
+def cli():
+    pass
+
+
+@cli.command(name="post")
 def make_post(markdown_file: Optional[str] = None) -> Post:
     """Generate a post from a markdown source file. Adds
     the post to the blog database.
@@ -68,6 +75,7 @@ def make_post(markdown_file: Optional[str] = None) -> Post:
     return new_post
 
 
+@cli.command(name="push_db")
 def push_db() -> None:
     """Push the updated blog database
     to the datum_b server."""
@@ -76,27 +84,32 @@ def push_db() -> None:
     os.popen(scp_cmd)
 
 
+@cli.command(name="restart")
 def restart_server() -> None:
     """Restart the flask app on the server"""
     restart_cmd = f"ssh {WEBHOST} touch /home/***REMOVED***/datum-b.com/tmp/restart.txt"
     os.popen(restart_cmd)
 
 
+@cli.command(name="list")
 def list_posts() -> None:
     """List all posts in the database. Posts
     colored in grey are hidden."""
     for post in Post.query.all():
-        if post.hidden:
-            print(Fore.WHITE, end="")
+        if not post.hidden:
+            print(Fore.GREEN, end="")
         print(post, Fore.RESET)
 
 
+@cli.command(name="push_images")
+@click.argument("post_id", type=int)
 def push_post_images(post_id: int) -> None:
     """Push images associated with a post_id
     to the web server.
 
     Arguments:
-        post_id:    Post ID
+        post_id:    The id of the post to push images for.
+                    Use `blog list` to list posts.
     """
     post_content = db.session.get(Post, post_id).content
     for image in find_html_images(post_content):
@@ -105,13 +118,35 @@ def push_post_images(post_id: int) -> None:
         os.popen(scp_cmd)
 
 
+@cli.command(name="toggle")
+@click.argument("post_id", type=int)
 def toggle_hidden(post_id: int) -> None:
     """Toggle a post's hidden status.
     Arguments:
         post_id:    The id of the post to be toggled
+                    Use `blog list` to list posts.
     """
     target_post = db.session.get(Post, post_id)
+    if target_post is None:
+        raise click.BadParameter(f"Post id {post_id} does not exist in database!")
     target_post.hidden = False if target_post.hidden else True
+    db.session.commit()
+
+
+@cli.command(name="edit")
+@click.argument("post_id", type=int)
+def edit_post(post_id: int) -> None:
+    """Edit the content of a post using vim.
+
+    Arguments:
+        post_id:    The id of the post to be edited
+                    Use `blog list` to list posts.
+    """
+    target_post = db.session.get(Post, post_id)
+    edited_content = click.edit(target_post.content, editor="vim")
+    target_post.content = edited_content
+    # change the post updated timestamp
+    target_post.post_update_ts = datetime.utcnow
     db.session.commit()
 
 
@@ -157,16 +192,6 @@ def copy_post(post_file: Optional[str] = None) -> str:
     new_path = copyfile(post_file, os.path.join(POSTS_DIRECTORY, file_name))
 
     return new_path
-
-
-def edit_post(post_id: int) -> None:
-    """Edit the content of a post"""
-    target_post = db.session.get(Post, post_id)
-    edited_content = click.edit(target_post.content, editor="vim")
-    target_post.content = new_content
-    # change the post updated timestamp
-    target_post.post_update_ts = datetime.utcnow
-    db.session.commit()
 
 
 def fuzzy_find_new_entry(search_dir: str = NOTES_DIRECTORY) -> Optional[str]:
@@ -240,18 +265,14 @@ def replace_internal_links(html_str: str) -> str:
 
     # Parse the internal links
     # Links in html string as tuples of title, link text
-    internal_links: list[tuple[str, str]] = list(
-        map(parse_internal_link, internal_link_text)
-    )
+    internal_links: list[tuple[str, str]] = list(map(parse_internal_link, internal_link_text))
 
     # Validate the internal links and get handles
     internal_link_handles = list(map(get_link_handle, internal_links))
 
     # Replace the links in the HTML string
     for index, link in enumerate(internal_link_text):
-        html_str = html_str.replace(
-            f"[[{link}]]", generate_link_href(internal_link_handles[index])
-        )
+        html_str = html_str.replace(f"[[{link}]]", generate_link_href(internal_link_handles[index]))
     # Return new HTML string
     return html_str
 
@@ -293,10 +314,7 @@ def get_title(html_str: str) -> str:
 def get_handle(title_str: str, max_length: int = 32) -> str:
     """Make a handle from a post title"""
     # remove all non alphanumerics
-    words = [
-        "".join([letter for letter in word if letter.isalnum()])
-        for word in title_str.split()
-    ]
+    words = ["".join([letter for letter in word if letter.isalnum()]) for word in title_str.split()]
     # truncate to 32 characters or fewer
     # don't break across a word
     letter_counts = accumulate([len(w) + 1 for w in words], initial=len(words[0]))
@@ -304,3 +322,7 @@ def get_handle(title_str: str, max_length: int = 32) -> str:
     # replace spaces with underscores
     # make all lowercase
     return "_".join(words[0:last_index]).lower()
+
+
+if __name__ == "__main__":
+    cli()
