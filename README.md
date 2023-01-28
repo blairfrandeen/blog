@@ -29,6 +29,7 @@ Images should be embedded into the post using the following format: `![Caption](
 Links to other posts can be made as normal, provided those other posts exist in both the live website and the Obsidian vault, and _the titles have not been changed_.
 
 Proofread, edit, etc.
+
 2. `blog post`. This selects the post from available files, grabs any associated images, parses the content from Markdown to HTML using pandoc, and adds it to the database.
 3. Preview the post using `flask run` and then navigate to https://127.0.0.1:5000.
 4. If satisfied, run `blog push_db`, followed by `blog push_images` if required. If unsatisfied, you can do `blog delete` or `blog edit` followed by the post ID.
