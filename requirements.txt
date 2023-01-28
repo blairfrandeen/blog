@@ -1,12 +1,13 @@
 alembic==1.9.2
 attrs==22.2.0
 black==22.12.0
+-e git+ssh://git@github.com/blairfrandeen/blog.git@38b31524fa4669022a7b6f18efb1a428f5119957#egg=blog_admin
 click==8.1.3
 colorama==0.4.6
 exceptiongroup==1.1.0
 Flask==2.2.2
 Flask-Migrate==4.0.1
-Flask-SQLAlchemy==2.5.1
+Flask-SQLAlchemy==3.0.2
 greenlet==2.0.1
 iniconfig==2.0.0
 itsdangerous==2.1.2

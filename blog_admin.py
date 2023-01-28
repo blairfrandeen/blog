@@ -22,6 +22,7 @@ from colorama import Fore
 
 from app import db
 from app.models import Post
+from app import app
 
 # Read the configuration file
 config = configparser.ConfigParser()
@@ -63,14 +64,15 @@ def make_post(markdown_file: Optional[str] = None) -> Post:
     content = replace_image_sources(content)
     content = replace_internal_links(content)
     handle = get_handle(title)
-    new_post = Post(
-        title=title,
-        content=content,
-        handle=handle,
-        hidden=False,
-    )
-    db.session.add(new_post)
-    db.session.commit()
+    with app.app_context():
+        new_post = Post(
+            title=title,
+            content=content,
+            handle=handle,
+            hidden=False,
+        )
+        db.session.add(new_post)
+        db.session.commit()
 
     return new_post
 
@@ -95,10 +97,11 @@ def restart_server() -> None:
 def list_posts() -> None:
     """List all posts in the database. Posts
     colored in grey are hidden."""
-    for post in Post.query.all():
-        if not post.hidden:
-            print(Fore.GREEN, end="")
-        print(post, Fore.RESET)
+    with app.app_context():
+        for post in Post.query.all():
+            if not post.hidden:
+                print(Fore.GREEN, end="")
+            print(post, Fore.RESET)
 
 
 @cli.command(name="push_images")
@@ -111,7 +114,9 @@ def push_post_images(post_id: int) -> None:
         post_id:    The id of the post to push images for.
                     Use `blog list` to list posts.
     """
-    post_content = db.session.get(Post, post_id).content
+    with app.app_context():
+        post_content = db.session.get(Post, post_id).content
+
     for image in find_html_images(post_content):
         img_path = os.path.join(IMAGES_DIRECTORY, os.path.basename(image))
         scp_cmd = f"scp {img_path} {WEBHOST}:datum-b.com/app/static/post_images"
@@ -126,11 +131,22 @@ def toggle_hidden(post_id: int) -> None:
         post_id:    The id of the post to be toggled
                     Use `blog list` to list posts.
     """
-    target_post = db.session.get(Post, post_id)
-    if target_post is None:
-        raise click.BadParameter(f"Post id {post_id} does not exist in database!")
-    target_post.hidden = False if target_post.hidden else True
-    db.session.commit()
+    with app.app_context():
+        target_post = db.session.get(Post, post_id)
+        if target_post is None:
+            raise click.BadParameter(f"Post id {post_id} does not exist in database!")
+        target_post.hidden = False if target_post.hidden else True
+        db.session.commit()
+
+
+@cli.command(name="delete")
+@click.argument("post_id", type=int)
+def delete_post(post_id: int) -> None:
+    """Delete a post"""
+    with app.app_context():
+        target_post = db.session.get(Post, post_id)
+        db.session.delete(target_post)
+        db.session.commit()
 
 
 @cli.command(name="edit")
@@ -142,12 +158,13 @@ def edit_post(post_id: int) -> None:
         post_id:    The id of the post to be edited
                     Use `blog list` to list posts.
     """
-    target_post = db.session.get(Post, post_id)
-    edited_content = click.edit(target_post.content, editor="vim")
-    target_post.content = edited_content
-    # change the post updated timestamp
-    target_post.post_update_ts = datetime.utcnow
-    db.session.commit()
+    with app.app_context():
+        target_post = db.session.get(Post, post_id)
+        edited_content = click.edit(target_post.content, editor="vim")
+        target_post.content = edited_content
+        # change the post updated timestamp
+        target_post.post_update_ts = datetime.utcnow()
+        db.session.commit()
 
 
 def find_html_images(html_source: str) -> list[str]:
