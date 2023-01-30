@@ -24,7 +24,7 @@ Make sure [pandoc](https://pandoc.org/installing.html) is installed (`sudo apt i
 ## Process for posting:
 1. Write post using Obsidian. Post must have an H1 header (line starts with `# `. Everything after the first horizontal rule (`---`) will be ignored.
 
-Images should be embedded into the post using the following format: `![Caption](image_file.jpg)`. Note that this is not the standard format for Obsidian.
+Images should be embedded into the post using the following format: `![Caption](image_file.jpg)`. Note that this is not the standard format for Obsidian. If it's desired for the caption to show up, make sure to have the image be the only thing on the line; otherwise the images will be inline and the captions will be hidden.
 
 Links to other posts can be made as normal, provided those other posts exist in both the live website and the Obsidian vault, and _the titles have not been changed_.
 
