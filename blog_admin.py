@@ -167,19 +167,6 @@ def edit_post(post_id: int) -> None:
         db.session.commit()
 
 
-def find_html_images(html_source: str) -> list[str]:
-    """Find all image paths in an HTML source."""
-    image_re = re.compile(r'<img src="(.+?)"')
-    return re.findall(image_re, html_source)
-
-
-def replace_image_sources(html_source: str) -> str:
-    """Replace links to images with the correct path."""
-    for image in find_html_images(html_source):
-        html_source = html_source.replace(image, f"/static/post_images/{image}")
-    return html_source
-
-
 def copy_post(post_file: Optional[str] = None) -> str:
     """Copy a target file and any associated images.
     to the posts directory. Return the path of the
@@ -266,6 +253,19 @@ def find_markdown_images(markdown_text: str) -> list[tuple[str, str]]:
     return images
 
 
+def find_html_images(html_source: str) -> list[str]:
+    """Find all image OR video paths in an HTML source."""
+    image_re = re.compile(r'<(?:img)?(?:video)? src="(.+?)"')
+    return re.findall(image_re, html_source)
+
+
+def replace_image_sources(html_source: str) -> str:
+    """Replace links to images with the correct path."""
+    for image in find_html_images(html_source):
+        html_source = html_source.replace(image, f"/static/post_images/{image}")
+    return html_source
+
+
 def get_internal_links(html_str: str) -> list[str]:
     # Find all inter-blog links
     internal_link_re = re.compile(r"\[\[(.+?)\]\]")
@@ -282,14 +282,18 @@ def replace_internal_links(html_str: str) -> str:
 
     # Parse the internal links
     # Links in html string as tuples of title, link text
-    internal_links: list[tuple[str, str]] = list(map(parse_internal_link, internal_link_text))
+    internal_links: list[tuple[str, str]] = list(
+        map(parse_internal_link, internal_link_text)
+    )
 
     # Validate the internal links and get handles
     internal_link_handles = list(map(get_link_handle, internal_links))
 
     # Replace the links in the HTML string
     for index, link in enumerate(internal_link_text):
-        html_str = html_str.replace(f"[[{link}]]", generate_link_href(internal_link_handles[index]))
+        html_str = html_str.replace(
+            f"[[{link}]]", generate_link_href(internal_link_handles[index])
+        )
     # Return new HTML string
     return html_str
 
@@ -331,7 +335,10 @@ def get_title(html_str: str) -> str:
 def get_handle(title_str: str, max_length: int = 32) -> str:
     """Make a handle from a post title"""
     # remove all non alphanumerics
-    words = ["".join([letter for letter in word if letter.isalnum()]) for word in title_str.split()]
+    words = [
+        "".join([letter for letter in word if letter.isalnum()])
+        for word in title_str.split()
+    ]
     # truncate to 32 characters or fewer
     # don't break across a word
     letter_counts = accumulate([len(w) + 1 for w in words], initial=len(words[0]))

@@ -11,3 +11,4 @@ blog.db
 app/static/post_images/
 local.cfg
 *.egg-info
+*.*~

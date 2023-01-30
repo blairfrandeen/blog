@@ -57,6 +57,20 @@ def test_find_images(md_string, img_list):
 
 
 @pytest.mark.parametrize(
+    "html_string, images",
+    [
+        (
+            '<video src="/static/post_images/sudoku-demo.mp4" controls autoplay loop>',
+            ["/static/post_images/sudoku-demo.mp4"],
+        ),
+        ('<img src="hello.jpg">', ["hello.jpg"]),
+    ],
+)
+def test_image_video_regex(html_string, images):
+    assert blog_admin.find_html_images(html_string) == images
+
+
+@pytest.mark.parametrize(
     "html_string, links",
     [
         (
