@@ -12,6 +12,19 @@ from blog_admin import (
 
 
 @pytest.mark.parametrize(
+    "html_string, video_tag",
+    [
+        (
+            '<video src="/static/post_images/sudoku-demo.mp4" control="">blah blah blah</video>',
+            '<video src="/static/post_images/sudoku-demo.mp4" control="" autoplay muted loop>blah blah blah</video>',
+        )
+    ],
+)
+def test_add_autoplay(html_string, video_tag):
+    assert blog_admin.add_autoplay(html_string) == video_tag
+
+
+@pytest.mark.parametrize(
     "title, handle, max_length",
     [
         ("Time to Dual Class", "time_to_dual_class", 24),

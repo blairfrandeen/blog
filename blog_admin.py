@@ -63,6 +63,7 @@ def make_post(markdown_file: Optional[str] = None) -> Post:
     title, content = parse_markdown(markdown_file)
     content = replace_image_sources(content)
     content = replace_internal_links(content)
+    content = add_autoplay(content)
     handle = get_handle(title)
     with app.app_context():
         new_post = Post(
@@ -263,6 +264,17 @@ def replace_image_sources(html_source: str) -> str:
     """Replace links to images with the correct path."""
     for image in find_html_images(html_source):
         html_source = html_source.replace(image, f"/static/post_images/{image}")
+    return html_source
+
+
+# TODO: Make this an optional flag
+def add_autoplay(html_source: str) -> str:
+    """Modify video tags so videos are autoplay, looped, and muted."""
+    video_regex = re.compile(r'<video src=".*?>')
+    for video_tag in re.findall(video_regex, html_source):
+        html_source = html_source.replace(
+            video_tag, f"{video_tag[:-1]} autoplay muted loop>"
+        )
     return html_source
 
 
