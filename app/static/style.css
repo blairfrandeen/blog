@@ -20,11 +20,19 @@ a:hover: {
 .center h1, h2, h3 {
     font-family: 'Segoe UI', sans-serif;
     color: white;
+    margin-top: 0;
+    margin-bottom: 0;
 }
 .datestamp {
     font-size: 0.9em;
     font-style: italic;
     font-family: Frank Ruhl Libre, serif;
+}
+.datetitle {
+    font-size: 1em;
+    font-style: italic;
+    font-family: Frank Ruhl Libre, serif;
+    margin-top: 0px;
 }
 img, video {
     width: 90%;

@@ -1,7 +1,8 @@
 {% extends "base.html" %}
 {% block content %}
-    {% for post in posts %}
-    <a href="/blog/{{ post.handle }}"><h2>{{ post.datestr}} - {{ post.title }}</h2></a>
+    {% for post in posts -%}
+    <a href="/blog/{{ post.handle }}"><h2>{{ post.title }}</h2></a>
+    <p class="datetitle">{{ post.datestr}}</p>
     <p class="entry">{{ post.content }}</p>
-    {% endfor %}
+    {%- endfor %}
 {% endblock %}
