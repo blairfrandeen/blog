@@ -176,6 +176,10 @@ def copy_post(post_file: Optional[str] = None) -> str:
     """Copy a target file and any associated images.
     to the posts directory. Return the path of the
     copied post."""
+    # Ensure posts and images directories exist
+    for directory in [POSTS_DIRECTORY, IMAGES_DIRECTORY]:
+        _mkdir_if_not_exists(directory)
+
     if not post_file:
         # Get the new entry using fzf
         post_file = fuzzy_find_new_entry()
@@ -201,6 +205,17 @@ def copy_post(post_file: Optional[str] = None) -> str:
     new_path = copyfile(post_file, os.path.join(POSTS_DIRECTORY, file_name))
 
     return new_path
+
+
+def _mkdir_if_not_exists(directory: str) -> None:
+    """Create a directory if it doesn't already exist"""
+    if not os.path.isdir(directory):
+        try:
+            os.mkdir(directory)
+        except FileExistsError:
+            print(f"ERROR: '{directory}' exists and is not a directory!")
+            print("\tHint: Remove this file and try again.")
+            exit(-1)
 
 
 def fuzzy_find_new_entry(search_dir: str = NOTES_DIRECTORY) -> Optional[str]:
