@@ -35,7 +35,9 @@ local_config = config["DEFAULT"]
 NOTES_DIRECTORY = local_config["NOTES_DIRECTORY"]
 POSTS_DIRECTORY = local_config["POSTS_DIRECTORY"]
 IMAGES_DIRECTORY = local_config["IMAGES_DIRECTORY"]
-WEBHOST = local_config["WEBHOST"]
+REMOTE_HOST = local_config["REMOTE_HOST"]
+REMOTE_USER = local_config["REMOTE_USER"]
+SSH_TARGET = f"{REMOTE_USER}@{REMOTE_HOST}"
 
 
 @click.group()
@@ -83,14 +85,16 @@ def push_db() -> None:
     """Push the updated blog database
     to the datum_b server."""
     # push the database file
-    scp_cmd = f"scp blog.db {WEBHOST}:datum-b.com"
+    scp_cmd = f"scp blog.db {SSH_TARGET}:datum-b.com"
     os.popen(scp_cmd)
 
 
 @cli.command(name="restart")
 def restart_server() -> None:
     """Restart the flask app on the server"""
-    restart_cmd = f"ssh {WEBHOST} touch /home/***REMOVED***/datum-b.com/tmp/restart.txt"
+    restart_cmd = (
+        f"ssh {SSH_TARGET} touch /home/{REMOTE_USER}/datum-b.com/tmp/restart.txt"
+    )
     os.popen(restart_cmd)
 
 
@@ -120,7 +124,7 @@ def push_post_images(post_id: int) -> None:
 
     for image in find_html_images(post_content):
         img_path = os.path.join(IMAGES_DIRECTORY, os.path.basename(image))
-        scp_cmd = f"scp {img_path} {WEBHOST}:datum-b.com/app/static/post_images"
+        scp_cmd = f"scp {img_path} {SSH_TARGET}:datum-b.com/app/static/post_images"
         os.popen(scp_cmd)
 
 
