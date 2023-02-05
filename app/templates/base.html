@@ -10,56 +10,7 @@
         <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}"/>
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre">
         <link rel="alternate" type="application/atom+xml" title="Datum-B Atom feed" href="{{url_for('feed')}}"/>
-        <style>
-        a:link, a:visited {
-            color: #fcba03;
-            text-decoration: none;
-            <!-- font-family: monospace; -->
-            font-family: Frank Ruhl Libre, serif;
-        }
-        a:hover: {
-            color: #fcba03;
-            text-decoration: underline;
-            font-family: Frank Ruhl Libre, serif;
-        }
-        .center {
-            margin: auto;
-            font-size: 1em;
-            float: center;
-            width: 60%;
-            padding: 15px;
-            background-color: #1d1e1f;
-        }
-        .center h1, h2, h3 {
-            font-family: 'Segoe UI', sans-serif;
-            color: white;
-        }
-        .datestamp {
-            font-size: 0.9em;
-            font-style: italic;
-            font-family: Frank Ruhl Libre, serif;
-        }
-        img, video {
-            width: 90%;
-            max-width: 100%;
-            height: auto;
-        }
-        figcaption {
-            font-size: 0.8em;
-            font-style: italic;
-            font-family: monospace;
-            color: #7575a3;
-        }
-        p {
-            font-size: 1em;
-            font-family: Frank Ruhl Libre, serif;
-        }
-        @media only screen and (max-width: 800px) {
-            .center {
-                width: 100%;
-            }
-        }
-        </style>
+        <link rel="stylesheet" href="{{url_for('static', filename='style.css')}}">
     </head>
 
     <body bgcolor="#171614" text="white">
