@@ -45,7 +45,7 @@ figcaption {
     font-family: monospace;
     color: #7575a3;
 }
-p, ul {
+p, ul, ol {
     font-size: 1em;
     font-family: Frank Ruhl Libre, serif;
 }
