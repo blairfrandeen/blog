@@ -8,8 +8,8 @@ class Post(db.Model):
     title = db.Column(db.String, index=True)
     handle = db.Column(db.String, index=True)
     content = db.Column(db.String, index=True)
-    post_ts = db.Column(db.DateTime, index=True, default=datetime.utcnow)
-    post_update_ts = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+    post_ts = db.Column(db.DateTime, index=True, default=datetime.today)
+    post_update_ts = db.Column(db.DateTime, index=True, default=datetime.today)
     hidden = db.Column(db.Boolean, default=False)
 
     def __repr__(self):
