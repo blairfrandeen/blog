@@ -34,6 +34,29 @@ a:hover: {
     font-family: Frank Ruhl Libre, serif;
     margin-top: 0px;
 }
+table {
+    align: center;
+    float: center;
+    min-width: 70%;
+    max-width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+}
+table, th, td {
+    border: 2px solid;
+    font-size: 1em;
+    border-collapse: collapse;
+    border-color: #3a3a3a;
+}
+.even {
+    background-color: #171717;
+}
+.odd {
+    background-color: #232323;
+}
+.header {
+    background-color: #010101;
+}
 img, video {
     width: 90%;
     max-width: 100%;
