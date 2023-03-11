@@ -12,6 +12,9 @@ a:hover: {
 body {
     background-color: #171614;
 }
+svg.svgicon {
+    fill: white;
+}
 .center {
     margin: auto;
     font-size: 1em;
