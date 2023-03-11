@@ -9,12 +9,16 @@ a:hover: {
     text-decoration: underline;
     font-family: Frank Ruhl Libre, serif;
 }
+body {
+    background-color: #171614;
+}
 .center {
     margin: auto;
     font-size: 1em;
     float: center;
     width: 60%;
     padding: 15px;
+    box-sizing: border-box;
     background-color: #1d1e1f;
 }
 .center h1, h2, h3 {
@@ -48,6 +52,15 @@ table, th, td {
     border-collapse: collapse;
     border-color: #3a3a3a;
     font-family: monospace;
+}
+pre {
+    border-color: #3a3a3a;
+    border: 1px solid;
+    line-height: 1.1em;
+    background-color: #171614;
+    padding: 15px 8px 15px 10px;
+    max-width: 100%;
+    overflow-x: auto;
 }
 .even {
     background-color: #171717;
