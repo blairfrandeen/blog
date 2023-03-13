@@ -339,9 +339,10 @@ def get_link_handle(link: tuple[str, str]) -> tuple[str, str]:
     post_title = link[0]
     link_text = link[1]
     handle = get_handle(post_title)
-    link_query = Post.query.filter_by(handle=handle).filter_by(hidden=False)
-    if len(list(link_query)) == 1:
-        return handle, link_text
+    with app.app_context():
+        link_query = Post.query.filter_by(handle=handle).filter_by(hidden=False)
+        if len(list(link_query)) == 1:
+            return handle, link_text
     raise Exception(f"No unhidden posts found for {handle}")
 
 
