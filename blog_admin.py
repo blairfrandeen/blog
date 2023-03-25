@@ -26,18 +26,30 @@ from app import app
 
 # Read the configuration file
 config = configparser.ConfigParser()
+
+# Check that local.cfg exists; if not, copy from default
+if not os.path.exists("local.cfg"):
+    print(Fore.RED, "ERROR: ", Fore.RESET, "No configuration file found!")
+    copyfile("config/default.cfg", "local.cfg")
+    print("local.cfg has been created for you. Please edit local.cfg and try again.")
+    exit(-1)
+
 config.read("local.cfg")
 local_config = config["DEFAULT"]
 
 # TODO: Improve type hints for Path-like objects
 # TODO: Access the local_config dictionary directly when one
 # of the below items is needed; removes this block of code
+
+# TODO: Check that things imported from the config file are working
 NOTES_DIRECTORY = local_config["NOTES_DIRECTORY"]
 POSTS_DIRECTORY = local_config["POSTS_DIRECTORY"]
-IMAGES_DIRECTORY = local_config["IMAGES_DIRECTORY"]
 REMOTE_HOST = local_config["REMOTE_HOST"]
 REMOTE_USER = local_config["REMOTE_USER"]
+
+
 SSH_TARGET = f"{REMOTE_USER}@{REMOTE_HOST}"
+IMAGES_DIRECTORY = "./app/static/post_images"
 
 
 @click.group()
