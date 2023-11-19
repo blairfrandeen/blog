@@ -49,7 +49,9 @@ REMOTE_USER = local_config["REMOTE_USER"]
 
 
 SSH_TARGET = f"{REMOTE_USER}@{REMOTE_HOST}"
-IMAGES_DIRECTORY = "./app/static/post_images"
+IMAGES_DIRECTORY = "app/static/post_images"
+SITE_ROOT = "datum-b.com"
+DB_FILE = "blog.db"
 
 
 @click.group()
@@ -96,8 +98,23 @@ def make_post(markdown_file: Optional[str] = None) -> Post:
 def push_db() -> None:
     """Push the updated blog database
     to the datum_b server."""
-    # push the database file
-    scp_cmd = f"scp blog.db {SSH_TARGET}:datum-b.com"
+    scp_cmd = f"scp {DB_FILE} {SSH_TARGET}:{SITE_ROOT}"
+    os.popen(scp_cmd)
+
+
+@cli.command(name="pull_db")
+def pull_db() -> None:
+    """Pull the database from the server. Backs up existing file if found."""
+    scp_cmd = f"scp {SSH_TARGET}:{SITE_ROOT}/{DB_FILE} {DB_FILE}"
+    if os.path.exists(DB_FILE):
+        os.rename(DB_FILE, f"{DB_FILE}.backup")
+    os.popen(scp_cmd)
+
+
+@cli.command(name="pull_images")
+def pull_images() -> None:
+    """Pull the images from the server. Overwrites existing images."""
+    scp_cmd = f"scp -r {SSH_TARGET}:{SITE_ROOT}/{IMAGES_DIRECTORY} ./{IMAGES_DIRECTORY}"
     os.popen(scp_cmd)
 
 
@@ -105,7 +122,7 @@ def push_db() -> None:
 def restart_server() -> None:
     """Restart the flask app on the server"""
     restart_cmd = (
-        f"ssh {SSH_TARGET} touch /home/{REMOTE_USER}/datum-b.com/tmp/restart.txt"
+        f"ssh {SSH_TARGET} touch /home/{REMOTE_USER}/{SITE_ROOT}/tmp/restart.txt"
     )
     os.popen(restart_cmd)
 
@@ -136,7 +153,7 @@ def push_post_images(post_id: int) -> None:
 
     for image in find_html_images(post_content):
         img_path = os.path.join(IMAGES_DIRECTORY, os.path.basename(image))
-        scp_cmd = f"scp {img_path} {SSH_TARGET}:datum-b.com/app/static/post_images"
+        scp_cmd = f"scp {img_path} {SSH_TARGET}:{SITE_ROOT}/{IMAGES_DIRECTORY}"
         os.popen(scp_cmd)
 
 
@@ -355,6 +372,7 @@ def get_link_handle(link: tuple[str, str]) -> tuple[str, str]:
         link_query = Post.query.filter_by(handle=handle).filter_by(hidden=False)
         if len(list(link_query)) == 1:
             return handle, link_text
+    breakpoint()
     raise Exception(f"No unhidden posts found for {handle}")
 
 

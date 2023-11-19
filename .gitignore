@@ -7,7 +7,7 @@ favicon.gif
 tmp/*
 *.swp
 posts/
-blog.db
+blog.db*
 app/static/post_images/
 local.cfg
 *.egg-info
