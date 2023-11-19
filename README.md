@@ -1,5 +1,5 @@
 # Datum-B Blog
-Code for [Datum-B](https://datum-b.com)
+Code for [Datum-B](https://datum-b.com). This is a simple blog that runs off of Flask.
 
 ## Installation
 Clone this repository:
@@ -20,6 +20,17 @@ pip install --editable .
 ```
 
 Make sure [pandoc](https://pandoc.org/installing.html) is installed (`sudo apt install pandoc`)
+
+## First Time Set-Up
+If you don't yet heave a `local.cfg` file, simply run `blog` and one will be created for you by copying [the default config file](https://github.com/blairfrandeen/blog/blob/master/config/default.cfg). You'll need to manually edit this file to fill out the `REMOTE_HOST` and `REMOTE_USER` keys to match the SSH login credentials for your web hosting provider.
+
+If you already have a site up an running, you'll want to download everything via ssh to your local machine to match, or otherwise copy the blog.db file to the root folder of this repository.
+
+If you are starting fresh, run
+```
+flask db upgrade
+```
+to initialize the blog.db file that the application needs to run.
 
 ## Process for posting:
 1. Write post using Obsidian. Post must have an H1 header (line starts with `# `. Everything after the first horizontal rule (`---`) will be ignored.
