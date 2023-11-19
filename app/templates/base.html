@@ -17,15 +17,11 @@
 <body bgcolor="#171614" text="white">
     <div class="center">
         <a href="{{url_for('home')}}">
-            <img src="{{url_for('static', filename='dblogo.png')}}" width="60%" max-width="50%" height="auto"
-                alt="Made with PowerPoint">
+            <img src="{{url_for('static', filename='dblogo.png')}}" height="50" alt="Made with PowerPoint">
         </a>
         {% block content %}{% endblock %}
         <hr>
-        <h2>About</h2>
-        <p class="entry">I am a software engineer with nearly a decade of specialized experience in mechanical
-            engineering. This blog chronicles my journey with coding, agile hardware development, and leadership
-            principles.</p>
+        <p align="center"><a href="{{url_for('home')}}">HOME</a> | <a href="{{url_for('about')}}">ABOUT</a></p>
 
         <div align="center">
             <a href="mailto:thoughts@datum-b.com">

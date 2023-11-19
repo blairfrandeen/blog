@@ -6,6 +6,11 @@ from app import app
 from app.models import Post
 
 
+@app.route("/about")
+def about():
+    return render_template("about.html")
+
+
 @app.route("/")
 @app.route("/home")
 def home():
