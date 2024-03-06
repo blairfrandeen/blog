@@ -86,7 +86,7 @@ def make_post(markdown_file: Optional[str] = None) -> Post:
             title=title,
             content=content,
             handle=handle,
-            hidden=False,
+            visibility=Visibility.HIDDEN,
         )
         db.session.add(new_post)
         db.session.commit()
@@ -130,11 +130,13 @@ def restart_server() -> None:
 @cli.command(name="list")
 def list_posts() -> None:
     """List all posts in the database. Posts
-    colored in grey are hidden."""
+    colored in grey are hidden, yellow are unlisted."""
     with app.app_context():
         for post in Post.query.all():
             if post.visibility == Visibility.PUBLISHED:
                 print(Fore.GREEN, end="")
+            if post.visibility == Visibility.UNLISTED:
+                print(Fore.YELLOW, end="")
             print(post, Fore.RESET)
 
 
@@ -157,19 +159,45 @@ def push_post_images(post_id: int) -> None:
         os.popen(scp_cmd)
 
 
-@cli.command(name="toggle")
+@cli.command(name="hide")
 @click.argument("post_id", type=int)
-def toggle_hidden(post_id: int) -> None:
-    """Toggle a post's hidden status.
+def set_vis_hidden(post_id: int) -> None:
+    """Set a post's visibility to hidden. Hidden posts won't show up on the front page or
+    RSS feed, and won't be accessible at their normal url.
+
     Arguments:
         post_id:    The id of the post to be toggled
-                    Use `blog list` to list posts.
     """
+    _set_visibility(post_id, Visibility.HIDDEN)
+
+@cli.command(name="unlist")
+@click.argument("post_id", type=int)
+def set_vis_unlisted(post_id: int) -> None:
+    """Set a post's visibility to unlisted. Unlisted posts won't show up on the front page or
+    RSS feed, but will be accessible at their normal URL.
+
+    Arguments:
+        post_id:    The id of the post to be toggled
+    """
+    _set_visibility(post_id, Visibility.UNLISTED)
+
+@cli.command(name="publish")
+@click.argument("post_id", type=int)
+def set_vis_published(post_id: int) -> None:
+    """Set a post's visibility to published. Published posts are fully visible on the
+    front page and RSS feed.
+
+    Arguments:
+        post_id:    The id of the post to be toggled
+    """
+    _set_visibility(post_id, Visibility.PUBLISHED)
+
+def _set_visibility(post_id: int, visibility) -> None:
     with app.app_context():
         target_post = db.session.get(Post, post_id)
         if target_post is None:
             raise click.BadParameter(f"Post id {post_id} does not exist in database!")
-        target_post.hidden = False if target_post.hidden else True
+        target_post.visibility = visibility
         db.session.commit()
 
 
@@ -273,7 +301,7 @@ def parse_markdown(markdown_file: str) -> tuple[str, str]:
     html_str = pdoc_output.read()
     title = get_title(html_str)
     # ignore everything after the horizontal rule for now
-    html_str = html_str.split("</h1>")[1].split("<hr />")[0]
+    # html_str = html_str.split("</h1>")[1].split("<hr />")[0]
 
     return title, html_str
 
