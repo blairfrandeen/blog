@@ -39,7 +39,7 @@ def blog_post(post_handle):
 
 @app.route("/feed/")
 def feed():
-    feed = AtomFeed(title="Datum-B", feed_url=request.url, url=request.url_root)
+    feed = AtomFeed(title="Blair Frandeen", feed_url=request.url, url=request.url_root)
     posts = Post.query.filter(Post.visibility == Visibility.PUBLISHED).order_by(Post.post_ts.desc()).all()
     for post in posts:
         feed.add(
