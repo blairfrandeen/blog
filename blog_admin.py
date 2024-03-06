@@ -170,6 +170,7 @@ def set_vis_hidden(post_id: int) -> None:
     """
     _set_visibility(post_id, Visibility.HIDDEN)
 
+
 @cli.command(name="unlist")
 @click.argument("post_id", type=int)
 def set_vis_unlisted(post_id: int) -> None:
@@ -181,6 +182,7 @@ def set_vis_unlisted(post_id: int) -> None:
     """
     _set_visibility(post_id, Visibility.UNLISTED)
 
+
 @cli.command(name="publish")
 @click.argument("post_id", type=int)
 def set_vis_published(post_id: int) -> None:
@@ -191,6 +193,7 @@ def set_vis_published(post_id: int) -> None:
         post_id:    The id of the post to be toggled
     """
     _set_visibility(post_id, Visibility.PUBLISHED)
+
 
 def _set_visibility(post_id: int, visibility) -> None:
     with app.app_context():
@@ -400,7 +403,9 @@ def get_link_handle(link: tuple[str, str]) -> tuple[str, str]:
     link_text = link[1]
     handle = get_handle(post_title)
     with app.app_context():
-        link_query = Post.query.filter_by(handle=handle).filter_by(visibility=Visibility.PUBLISHED)
+        link_query = Post.query.filter_by(handle=handle).filter_by(
+            visibility=Visibility.PUBLISHED
+        )
         if len(list(link_query)) == 1:
             return handle, link_text
     raise Exception(f"No unhidden posts found for {handle}")

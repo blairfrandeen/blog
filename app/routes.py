@@ -14,7 +14,11 @@ def about():
 @app.route("/")
 @app.route("/home")
 def home():
-    posts = Post.query.filter(Post.visibility == Visibility.PUBLISHED).order_by(Post.post_ts.desc()).all()
+    posts = (
+        Post.query.filter(Post.visibility == Visibility.PUBLISHED)
+        .order_by(Post.post_ts.desc())
+        .all()
+    )
     for post in posts:
         post.datestr = datetime.datetime.date(post.post_ts).strftime("%-d %B, %Y")
         post.content = Markup(post.content).split("\n")[1]
@@ -23,12 +27,14 @@ def home():
 
 @app.route("/blog/<post_handle>")
 def blog_post(post_handle):
-    post = Post.query.filter(
-        Post.visibility.in_([Visibility.PUBLISHED, Visibility.UNLISTED]),
-        Post.handle == post_handle
-    ).order_by(
-        Post.post_ts.desc()
-    ).first()
+    post = (
+        Post.query.filter(
+            Post.visibility.in_([Visibility.PUBLISHED, Visibility.UNLISTED]),
+            Post.handle == post_handle,
+        )
+        .order_by(Post.post_ts.desc())
+        .first()
+    )
     if not post:
         return render_template("404.html")
 
@@ -40,7 +46,11 @@ def blog_post(post_handle):
 @app.route("/feed/")
 def feed():
     feed = AtomFeed(title="Blair Frandeen", feed_url=request.url, url=request.url_root)
-    posts = Post.query.filter(Post.visibility == Visibility.PUBLISHED).order_by(Post.post_ts.desc()).all()
+    posts = (
+        Post.query.filter(Post.visibility == Visibility.PUBLISHED)
+        .order_by(Post.post_ts.desc())
+        .all()
+    )
     for post in posts:
         feed.add(
             post.title,

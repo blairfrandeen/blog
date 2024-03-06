@@ -5,12 +5,15 @@ from sqlalchemy import Enum
 
 from app import db
 
+
 class Visibility(IntEnum):
     HIDDEN = 0
     UNLISTED = 1
     PUBLISHED = 2
 
+
 vis_enum = Enum(Visibility)
+
 
 class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)
