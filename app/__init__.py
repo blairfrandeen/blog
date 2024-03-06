@@ -5,6 +5,7 @@ from flask_migrate import Migrate
 
 app = Flask(__name__)
 app.config.from_object(Config)
+app.config["FREEZER_RELATIVE_URLS"] = True
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 __version__ = "0.0.1"
