@@ -12,7 +12,6 @@ def about():
 
 
 @app.route("/")
-@app.route("/home")
 def home():
     posts = (
         Post.query.filter(Post.visibility == Visibility.PUBLISHED)
@@ -54,7 +53,7 @@ def feed():
     for post in posts:
         feed.add(
             post.title,
-            Markup(post.content).split("\n")[1],  # TODO: make summary function
+            Markup(post.content),
             content_type="html",
             author="Blair Frandeen",
             updated=post.post_update_ts,
