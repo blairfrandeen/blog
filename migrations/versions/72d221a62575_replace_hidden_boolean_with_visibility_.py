@@ -16,7 +16,7 @@ down_revision = '8725469afee5'
 branch_labels = None
 depends_on = None
 
-class Visibility(enum.Enum):
+class Visibility(enum.IntEnum):
     HIDDEN = 0
     UNLISTED = 1
     PUBLISHED = 2
@@ -27,7 +27,7 @@ def upgrade():
         batch_op.add_column(sa.Column('visibility', sa.Enum(Visibility), nullable=False,
                                       server_default = '0'))
     with op.batch_alter_table('post', schema=None) as batch_op:
-        batch_op.execute("UPDATE post SET visibility = CASE WHEN hidden = true THEN '0' ELSE '2' END")
+        batch_op.execute("UPDATE post SET visibility = CASE WHEN hidden = true THEN 'HIDDEN' ELSE 'PUBLISHED' END")
         batch_op.drop_column('hidden')
 
     # ### end Alembic commands ###
@@ -38,7 +38,7 @@ def downgrade():
     with op.batch_alter_table('post', schema=None) as batch_op:
         batch_op.add_column(sa.Column('hidden', sa.BOOLEAN(), nullable=True))
     with op.batch_alter_table('post', schema=None) as batch_op:
-        batch_op.execute("UPDATE post SET hidden = CASE WHEN visibility = '0' THEN true ELSE false END")
+        batch_op.execute("UPDATE post SET hidden = CASE WHEN visibility = 'HIDDEN' THEN true ELSE false END")
         batch_op.drop_column('visibility')
 
     # ### end Alembic commands ###

@@ -21,7 +21,7 @@ import click
 from colorama import Fore
 
 from app import db
-from app.models import Post
+from app.models import Post, Visibility
 from app import app
 
 # Read the configuration file
@@ -133,7 +133,7 @@ def list_posts() -> None:
     colored in grey are hidden."""
     with app.app_context():
         for post in Post.query.all():
-            if not post.hidden:
+            if post.visibility == Visibility.PUBLISHED:
                 print(Fore.GREEN, end="")
             print(post, Fore.RESET)
 
@@ -372,7 +372,6 @@ def get_link_handle(link: tuple[str, str]) -> tuple[str, str]:
         link_query = Post.query.filter_by(handle=handle).filter_by(hidden=False)
         if len(list(link_query)) == 1:
             return handle, link_text
-    breakpoint()
     raise Exception(f"No unhidden posts found for {handle}")
 
 
