@@ -300,8 +300,11 @@ def parse_markdown(markdown_file: str) -> tuple[str, str]:
     pdoc_output = os.popen(pdoc_cmd)
     html_str = pdoc_output.read()
     title = get_title(html_str)
-    # ignore everything after the horizontal rule for now
-    # html_str = html_str.split("</h1>")[1].split("<hr />")[0]
+    # strip the title from the document itself
+    html_str = html_str.split("</h1>")[1]
+    # ignore everything after the horizontal rule for now. This is a temporary
+    # workaround, but is the cause of issue #27
+    html_str = html_str.split("<hr />")[0]
 
     return title, html_str
 
