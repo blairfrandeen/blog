@@ -3,7 +3,7 @@ from urllib.parse import urljoin
 from flask import render_template, url_for, Markup, request
 from feedwerk.atom import AtomFeed
 from app import app
-from app.models import Post
+from app.models import Post, Visibility
 
 
 @app.route("/about")
@@ -14,7 +14,7 @@ def about():
 @app.route("/")
 @app.route("/home")
 def home():
-    posts = Post.query.filter(~Post.hidden).order_by(Post.post_ts.desc()).all()
+    posts = Post.query.filter(Post.visibility == Visibility.PUBLISHED).order_by(Post.post_ts.desc()).all()
     for post in posts:
         post.datestr = datetime.datetime.date(post.post_ts).strftime("%-d %B, %Y")
         post.content = Markup(post.content).split("\n")[1]
@@ -23,11 +23,13 @@ def home():
 
 @app.route("/blog/<post_handle>")
 def blog_post(post_handle):
-    try:
-        post = Post.query.filter(~Post.hidden, Post.handle == post_handle).order_by(
-            Post.post_ts.desc()
-        )[-1]
-    except IndexError:  # no post found
+    post = Post.query.filter(
+        Post.visibility.in_([Visibility.PUBLISHED, Visibility.UNLISTED]),
+        Post.handle == post_handle
+    ).order_by(
+        Post.post_ts.desc()
+    ).first()
+    if not post:
         return render_template("404.html")
 
     post.datestr = datetime.datetime.date(post.post_ts).strftime("%-d %B, %Y")
@@ -38,7 +40,7 @@ def blog_post(post_handle):
 @app.route("/feed/")
 def feed():
     feed = AtomFeed(title="Datum-B", feed_url=request.url, url=request.url_root)
-    posts = Post.query.filter(~Post.hidden).order_by(Post.post_ts.desc()).all()
+    posts = Post.query.filter(Post.visibility == Visibility.PUBLISHED).order_by(Post.post_ts.desc()).all()
     for post in posts:
         feed.add(
             post.title,
