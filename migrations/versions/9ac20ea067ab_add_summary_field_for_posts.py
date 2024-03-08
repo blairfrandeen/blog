@@ -33,7 +33,7 @@ def upgrade():
         posts = session.query(Post).all()
         for post in posts:
             try:
-                first_paragraph =Markup(post.content).split("\n")[1]
+                first_paragraph = post.content.split("\n")[1]
                 first_paragraph = first_paragraph.replace("<p>","")
                 first_paragraph = first_paragraph.replace("</p>","")
                 post.summary = first_paragraph

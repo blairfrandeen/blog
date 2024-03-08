@@ -3,6 +3,6 @@
     {% for post in posts -%}
     <a href="{{url_for('blog_post', post_handle=post.handle)}}"><h2>{{ post.title }}</h2></a>
     <p class="datetitle">{{ post.datestr}}</p>
-    <p class="entry">{{ post.content }}</p>
+    <p class="entry">{{ post.summary }}</p>
     {%- endfor %}
 {% endblock %}

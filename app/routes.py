@@ -20,7 +20,7 @@ def home():
     )
     for post in posts:
         post.datestr = datetime.datetime.date(post.post_ts).strftime("%-d %B, %Y")
-        post.content = Markup(post.content).split("\n")[1]
+        post.summary = Markup(post.summary)
     return render_template("index.html", posts=posts)
 
 
