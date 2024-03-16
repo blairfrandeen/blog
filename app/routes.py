@@ -1,6 +1,6 @@
 import datetime
 from urllib.parse import urljoin
-from flask import render_template, url_for, Markup, request
+from flask import render_template, Markup, request
 from feedwerk.atom import AtomFeed
 from app import app
 from app.models import Post, Visibility

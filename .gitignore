@@ -13,3 +13,4 @@ local.cfg
 *.egg-info
 *.*~
 app/build/
+*.db
