@@ -42,7 +42,7 @@ def blog_post(post_handle):
     return render_template("post.html", post=post)
 
 
-@app.route("/feed/")
+@app.route("/feed")
 def feed():
     feed = AtomFeed(title="Blair Frandeen", feed_url=request.url, url=request.url_root)
     posts = (
