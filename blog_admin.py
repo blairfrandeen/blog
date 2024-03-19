@@ -124,6 +124,13 @@ def restart_server() -> None:
     os.popen(restart_cmd)
 
 
+@cli.command(name="sync")
+def sync_with_server() -> None:
+    """Sync the static site with the server."""
+    sync_cmd = f"rsync -rv app/build/* {SSH_TARGET}:{SITE_ROOT}"
+    os.popen(sync_cmd)
+
+
 @cli.command(name="list")
 def list_posts() -> None:
     """List all posts in the database. Posts
