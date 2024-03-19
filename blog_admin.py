@@ -10,6 +10,7 @@ between the two systems, and remove the friction in doing so.
 import configparser
 import os
 import re
+import webbrowser
 from datetime import datetime
 from itertools import accumulate
 from typing import Optional
@@ -105,6 +106,11 @@ def freeze() -> None:
             yield {"post_handle": post.handle}
 
     freezer.freeze()
+
+@cli.command(name="preview")
+def preview() -> None:
+    """Preview the static site in your default browser."""
+    webbrowser.open( os.path.join(os.getcwd(), "app", "build", "index.html"))
 
 @cli.command(name="push_db")
 def push_db() -> None:
