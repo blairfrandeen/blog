@@ -12,3 +12,5 @@ app/static/post_images/
 local.cfg
 *.egg-info
 *.*~
+app/build/
+*.db

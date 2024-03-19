@@ -1,6 +1,6 @@
 import datetime
 from urllib.parse import urljoin
-from flask import render_template, url_for, Markup, request
+from flask import render_template, Markup, request
 from feedwerk.atom import AtomFeed
 from app import app
 from app.models import Post, Visibility
@@ -12,7 +12,6 @@ def about():
 
 
 @app.route("/")
-@app.route("/home")
 def home():
     posts = (
         Post.query.filter(Post.visibility == Visibility.PUBLISHED)
@@ -21,7 +20,7 @@ def home():
     )
     for post in posts:
         post.datestr = datetime.datetime.date(post.post_ts).strftime("%-d %B, %Y")
-        post.content = Markup(post.content).split("\n")[1]
+        post.summary = Markup(post.summary)
     return render_template("index.html", posts=posts)
 
 
@@ -43,7 +42,7 @@ def blog_post(post_handle):
     return render_template("post.html", post=post)
 
 
-@app.route("/feed/")
+@app.route("/feed")
 def feed():
     feed = AtomFeed(title="Blair Frandeen", feed_url=request.url, url=request.url_root)
     posts = (
@@ -54,7 +53,7 @@ def feed():
     for post in posts:
         feed.add(
             post.title,
-            Markup(post.content).split("\n")[1],  # TODO: make summary function
+            Markup(post.content),
             content_type="html",
             author="Blair Frandeen",
             updated=post.post_update_ts,

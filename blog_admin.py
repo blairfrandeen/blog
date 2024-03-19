@@ -7,22 +7,22 @@ and the blog administration and backend is done using WSL Ubuntu.
 This set of tools exists in order to easily transfer files
 between the two systems, and remove the friction in doing so.
 """
-
 import configparser
 import os
 import re
-from datetime import datetime, date
+import webbrowser
+from datetime import datetime
 from itertools import accumulate
-from pprint import pprint
 from typing import Optional
 from shutil import copyfile
 
 import click
 from colorama import Fore
+from flask_frozen import Freezer
 
 from app import db
 from app.models import Post, Visibility
-from app import app
+from app import app, models
 
 # Read the configuration file
 config = configparser.ConfigParser()
@@ -94,28 +94,25 @@ def make_post(markdown_file: Optional[str] = None) -> Post:
     return new_post
 
 
-@cli.command(name="push_db")
-def push_db() -> None:
-    """Push the updated blog database
-    to the datum_b server."""
-    scp_cmd = f"scp {DB_FILE} {SSH_TARGET}:{SITE_ROOT}"
-    os.popen(scp_cmd)
+@cli.command(name="freeze")
+def freeze() -> None:
+    """Freeze the static site."""
+    freezer = Freezer(app)
+
+    @freezer.register_generator
+    def blog_post():
+        for post in models.Post.query.filter(
+            Post.visibility.in_([Visibility.PUBLISHED, Visibility.UNLISTED]),
+        ):
+            yield {"post_handle": post.handle}
+
+    freezer.freeze()
 
 
-@cli.command(name="pull_db")
-def pull_db() -> None:
-    """Pull the database from the server. Backs up existing file if found."""
-    scp_cmd = f"scp {SSH_TARGET}:{SITE_ROOT}/{DB_FILE} {DB_FILE}"
-    if os.path.exists(DB_FILE):
-        os.rename(DB_FILE, f"{DB_FILE}.backup")
-    os.popen(scp_cmd)
-
-
-@cli.command(name="pull_images")
-def pull_images() -> None:
-    """Pull the images from the server. Overwrites existing images."""
-    scp_cmd = f"scp -r {SSH_TARGET}:{SITE_ROOT}/{IMAGES_DIRECTORY} ./{IMAGES_DIRECTORY}"
-    os.popen(scp_cmd)
+@cli.command(name="preview")
+def preview() -> None:
+    """Preview the static site in your default browser."""
+    webbrowser.open(os.path.join(os.getcwd(), "app", "build", "index.html"))
 
 
 @cli.command(name="restart")
@@ -125,6 +122,13 @@ def restart_server() -> None:
         f"ssh {SSH_TARGET} touch /home/{REMOTE_USER}/{SITE_ROOT}/tmp/restart.txt"
     )
     os.popen(restart_cmd)
+
+
+@cli.command(name="sync")
+def sync_with_server() -> None:
+    """Sync the static site with the server."""
+    sync_cmd = f"rsync -rv app/build/* {SSH_TARGET}:{SITE_ROOT}"
+    os.popen(sync_cmd)
 
 
 @cli.command(name="list")
@@ -138,25 +142,6 @@ def list_posts() -> None:
             if post.visibility == Visibility.UNLISTED:
                 print(Fore.YELLOW, end="")
             print(post, Fore.RESET)
-
-
-@cli.command(name="push_images")
-@click.argument("post_id", type=int)
-def push_post_images(post_id: int) -> None:
-    """Push images associated with a post_id
-    to the web server.
-
-    Arguments:
-        post_id:    The id of the post to push images for.
-                    Use `blog list` to list posts.
-    """
-    with app.app_context():
-        post_content = db.session.get(Post, post_id).content
-
-    for image in find_html_images(post_content):
-        img_path = os.path.join(IMAGES_DIRECTORY, os.path.basename(image))
-        scp_cmd = f"scp {img_path} {SSH_TARGET}:{SITE_ROOT}/{IMAGES_DIRECTORY}"
-        os.popen(scp_cmd)
 
 
 @cli.command(name="hide")
@@ -344,8 +329,9 @@ def find_html_images(html_source: str) -> list[str]:
 
 def replace_image_sources(html_source: str) -> str:
     """Replace links to images with the correct path."""
+    prefix = "../static/post_images"
     for image in find_html_images(html_source):
-        html_source = html_source.replace(image, f"/static/post_images/{image}")
+        html_source = html_source.replace(image, f"{prefix}/{image}")
     return html_source
 
 
