@@ -7,22 +7,21 @@ and the blog administration and backend is done using WSL Ubuntu.
 This set of tools exists in order to easily transfer files
 between the two systems, and remove the friction in doing so.
 """
-
 import configparser
 import os
 import re
-from datetime import datetime, date
+from datetime import datetime
 from itertools import accumulate
-from pprint import pprint
 from typing import Optional
 from shutil import copyfile
 
 import click
 from colorama import Fore
+from flask_frozen import Freezer
 
 from app import db
 from app.models import Post, Visibility
-from app import app
+from app import app, models
 
 # Read the configuration file
 config = configparser.ConfigParser()
@@ -93,6 +92,19 @@ def make_post(markdown_file: Optional[str] = None) -> Post:
 
     return new_post
 
+@cli.command(name="freeze")
+def freeze() -> None:
+    """Freeze the static site."""
+    freezer = Freezer(app)
+
+    @freezer.register_generator
+    def blog_post():
+        for post in models.Post.query.filter(
+            Post.visibility.in_([Visibility.PUBLISHED, Visibility.UNLISTED]),
+        ):
+            yield {"post_handle": post.handle}
+
+    freezer.freeze()
 
 @cli.command(name="push_db")
 def push_db() -> None:
