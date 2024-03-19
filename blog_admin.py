@@ -93,6 +93,7 @@ def make_post(markdown_file: Optional[str] = None) -> Post:
 
     return new_post
 
+
 @cli.command(name="freeze")
 def freeze() -> None:
     """Freeze the static site."""
@@ -107,33 +108,11 @@ def freeze() -> None:
 
     freezer.freeze()
 
+
 @cli.command(name="preview")
 def preview() -> None:
     """Preview the static site in your default browser."""
-    webbrowser.open( os.path.join(os.getcwd(), "app", "build", "index.html"))
-
-@cli.command(name="push_db")
-def push_db() -> None:
-    """Push the updated blog database
-    to the datum_b server."""
-    scp_cmd = f"scp {DB_FILE} {SSH_TARGET}:{SITE_ROOT}"
-    os.popen(scp_cmd)
-
-
-@cli.command(name="pull_db")
-def pull_db() -> None:
-    """Pull the database from the server. Backs up existing file if found."""
-    scp_cmd = f"scp {SSH_TARGET}:{SITE_ROOT}/{DB_FILE} {DB_FILE}"
-    if os.path.exists(DB_FILE):
-        os.rename(DB_FILE, f"{DB_FILE}.backup")
-    os.popen(scp_cmd)
-
-
-@cli.command(name="pull_images")
-def pull_images() -> None:
-    """Pull the images from the server. Overwrites existing images."""
-    scp_cmd = f"scp -r {SSH_TARGET}:{SITE_ROOT}/{IMAGES_DIRECTORY} ./{IMAGES_DIRECTORY}"
-    os.popen(scp_cmd)
+    webbrowser.open(os.path.join(os.getcwd(), "app", "build", "index.html"))
 
 
 @cli.command(name="restart")
@@ -156,25 +135,6 @@ def list_posts() -> None:
             if post.visibility == Visibility.UNLISTED:
                 print(Fore.YELLOW, end="")
             print(post, Fore.RESET)
-
-
-@cli.command(name="push_images")
-@click.argument("post_id", type=int)
-def push_post_images(post_id: int) -> None:
-    """Push images associated with a post_id
-    to the web server.
-
-    Arguments:
-        post_id:    The id of the post to push images for.
-                    Use `blog list` to list posts.
-    """
-    with app.app_context():
-        post_content = db.session.get(Post, post_id).content
-
-    for image in find_html_images(post_content):
-        img_path = os.path.join(IMAGES_DIRECTORY, os.path.basename(image))
-        scp_cmd = f"scp {img_path} {SSH_TARGET}:{SITE_ROOT}/{IMAGES_DIRECTORY}"
-        os.popen(scp_cmd)
 
 
 @cli.command(name="hide")
