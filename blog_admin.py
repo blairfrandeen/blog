@@ -329,8 +329,9 @@ def find_html_images(html_source: str) -> list[str]:
 
 def replace_image_sources(html_source: str) -> str:
     """Replace links to images with the correct path."""
+    prefix = "../static/post_images"
     for image in find_html_images(html_source):
-        html_source = html_source.replace(image, f"/static/post_images/{image}")
+        html_source = html_source.replace(image, f"{prefix}/{image}")
     return html_source
 
 
