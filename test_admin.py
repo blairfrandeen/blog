@@ -8,8 +8,28 @@ from blog_admin import (
     get_internal_links,
     parse_internal_link,
     replace_internal_links,
+    get_resize_arg,
 )
 
+@pytest.mark.parametrize("caption, expected_output", [
+    ("My Image |500", "500x>"),
+    ("My Image |x600", "x600>"),
+    ("My Image |640x480", "640x480"),
+    ("My Image", None),
+    ("My Image |invalid", None),
+    ("My Image |x", None),
+    ("My Image |x600x800", None),
+])
+def test_get_resize_arg(caption, expected_output):
+    """
+    Test the get_resize_arg function with various input captions.
+
+    Args:
+        caption (str): The input caption string.
+        expected_output (str or None): The expected output string or None.
+    """
+    output = get_resize_arg(caption)
+    assert output == expected_output
 
 @pytest.mark.parametrize(
     "html_string, video_tag",

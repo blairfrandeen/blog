@@ -377,6 +377,40 @@ def replace_internal_links(html_str: str) -> str:
     # Return new HTML string
     return html_str
 
+def get_resize_arg(caption: str) -> Optional[str]:
+    """Given an image caption, return the resizing argument passed to convert if an
+    image size was given."""
+    # Regular expressions to match different patterns
+    width_pattern = r'\|(\d+)$'
+    height_pattern = r'\|x(\d+)$'
+    dimensions_pattern = r'\|(\d+)x(\d+)$'
+
+    # Check for width only
+    match = re.search(width_pattern, caption)
+    if match:
+        width = match.group(1)
+        return f"{width}x>"
+
+    # Check for height only
+    match = re.search(height_pattern, caption)
+    if match:
+        height = match.group(1)
+        return f"x{height}>"
+
+    # Check for both width and height
+    match = re.search(dimensions_pattern, caption)
+    if match:
+        width, height = match.groups()
+        return f"{width}x{height}"
+
+    # If no pattern matches, return None
+    return None
+
+def resize_image(source_path: str | os.PathLike, resize_arg: str):
+    # TODO: parse the source path and append `_small` to the end
+    out_path = "out.jpg"
+    cmd = ["convert", source_path, "-resize", resize_arg, out_path]
+    subprocess.run(cmd, check=True)
 
 def generate_link_href(link: tuple[str, str]) -> str:
     return f"<a href='/blog/{link[0]}'>{link[1]}</a>"
