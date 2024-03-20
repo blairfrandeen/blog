@@ -79,6 +79,7 @@ def make_post(markdown_file: Optional[str] = None) -> Post:
         # fuzzy finder search
         markdown_file = copy_post()
     title, content = parse_markdown(markdown_file)
+    summary=content.split("\n")[1]
     content = replace_image_sources(content)
     content = replace_internal_links(content)
     content = remove_image_sizing_from_captions(content)
@@ -88,6 +89,7 @@ def make_post(markdown_file: Optional[str] = None) -> Post:
         new_post = Post(
             title=title,
             content=content,
+            summary=summary,
             handle=handle,
             visibility=Visibility.HIDDEN,
         )
