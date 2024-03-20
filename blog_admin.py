@@ -391,13 +391,14 @@ def replace_internal_links(html_str: str) -> str:
     # Return new HTML string
     return html_str
 
+
 def get_resize_arg(caption: str) -> Optional[str]:
     """Given an image caption, return the resizing argument passed to convert if an
     image size was given."""
     # Regular expressions to match different patterns
-    width_pattern = r'\|(\d+)$'
-    height_pattern = r'\|x(\d+)$'
-    dimensions_pattern = r'\|(\d+)x(\d+)$'
+    width_pattern = r"\|(\d+)$"
+    height_pattern = r"\|x(\d+)$"
+    dimensions_pattern = r"\|(\d+)x(\d+)$"
 
     # Check for width only
     match = re.search(width_pattern, caption)
@@ -420,7 +421,10 @@ def get_resize_arg(caption: str) -> Optional[str]:
     # If no pattern matches, return None
     return None
 
-def resize_image(source_path: str | os.PathLike, resize_arg: str, quality: float = 0.8) -> Optional[Path]:
+
+def resize_image(
+    source_path: str | os.PathLike, resize_arg: str, quality: float = 0.8
+) -> Optional[Path]:
     """Resize an image using ImageMagick convert.
 
     Arguments
@@ -434,15 +438,29 @@ def resize_image(source_path: str | os.PathLike, resize_arg: str, quality: float
     Path to reduced-size image.
     """
     source_path = Path(source_path).resolve()
-    if source_path.stem in [".svg", ".mp4", ".gif"]: # Don't try this on svg, mp4, or gif
+    if source_path.stem in [
+        ".svg",
+        ".mp4",
+        ".gif",
+    ]:  # Don't try this on svg, mp4, or gif
         return None
 
     out_path = source_path.parent / Path(source_path.stem + "_reduced.jpg")
-    cmd = ["convert", source_path, "-resize", resize_arg, "-quality", str(int(quality*100)), "-strip", str(out_path)]
+    cmd = [
+        "convert",
+        source_path,
+        "-resize",
+        resize_arg,
+        "-quality",
+        str(int(quality * 100)),
+        "-strip",
+        str(out_path),
+    ]
     print(f"Running {cmd}")
     subprocess.run(cmd, check=True)
 
     return out_path
+
 
 def generate_link_href(link: tuple[str, str]) -> str:
     return f"<a href='/blog/{link[0]}'>{link[1]}</a>"
@@ -500,27 +518,29 @@ def get_handle(title_str: str, max_length: int = 32) -> str:
 def remove_image_sizing_from_captions(html: str) -> str:
     """
     Removes any image sizing information from <figcaption> tags in HTML.
-    
+
     Arguments
     ---------
     html: The HTML string to process.
-    
+
     Returns
     -------
     The HTML string with image sizing information removed from <figcaption> tags.
     """
-    
+
     # Regular expression pattern to match <figcaption> tags and their content
-    figcaption_pattern = r'<figcaption>(.*?)</figcaption>'
-    
+    figcaption_pattern = r"<figcaption>(.*?)</figcaption>"
+
     def remove_sizing(match):
         # Remove the '|' and everything after it from the matched text
         caption = match.group(1).split("|")[0]
         return f"<figcaption>{caption}</figcaption>"
-    
+
     # Replace the matched <figcaption> tags with the new content
     cleaned_html = re.sub(figcaption_pattern, remove_sizing, html)
-    
+
     return cleaned_html
+
+
 if __name__ == "__main__":
     cli()

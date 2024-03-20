@@ -9,18 +9,22 @@ from blog_admin import (
     parse_internal_link,
     replace_internal_links,
     get_resize_arg,
-    remove_image_sizing_from_captions
+    remove_image_sizing_from_captions,
 )
 
-@pytest.mark.parametrize("caption, expected_output", [
-    ("My Image |500", "500x>"),
-    ("My Image |x600", "x600>"),
-    ("My Image |640x480", "640x480"),
-    ("My Image", None),
-    ("My Image |invalid", None),
-    ("My Image |x", None),
-    ("My Image |x600x800", None),
-])
+
+@pytest.mark.parametrize(
+    "caption, expected_output",
+    [
+        ("My Image |500", "500x>"),
+        ("My Image |x600", "x600>"),
+        ("My Image |640x480", "640x480"),
+        ("My Image", None),
+        ("My Image |invalid", None),
+        ("My Image |x", None),
+        ("My Image |x600x800", None),
+    ],
+)
 def test_get_resize_arg(caption, expected_output):
     """
     Test the get_resize_arg function with various input captions.
@@ -31,6 +35,7 @@ def test_get_resize_arg(caption, expected_output):
     """
     output = get_resize_arg(caption)
     assert output == expected_output
+
 
 @pytest.mark.parametrize(
     "html_string, video_tag",
@@ -156,22 +161,32 @@ def test_replace_internal_links(html_string, expected, monkeypatch):
 def test_link_href(link: tuple[str, str], expected: str):
     assert generate_link_href(link) == expected
 
-@pytest.mark.parametrize("html_input, expected_output", [
-    ("<html><body><figure><img src='image1.jpg' alt='Image 1'><figcaption>Caption 1 |500</figcaption></figure></body></html>",
-     "<html><body><figure><img src='image1.jpg' alt='Image 1'><figcaption>Caption 1 </figcaption></figure></body></html>"),
 
-    ("<html><body><figure><img src='image2.jpg' alt='Image 2'><figcaption>Caption 2 |x600</figcaption></figure></body></html>",
-     "<html><body><figure><img src='image2.jpg' alt='Image 2'><figcaption>Caption 2 </figcaption></figure></body></html>"),
-
-    ("<html><body><figure><img src='image3.jpg' alt='Image 3'><figcaption>Caption 3 |640x480</figcaption></figure></body></html>",
-     "<html><body><figure><img src='image3.jpg' alt='Image 3'><figcaption>Caption 3 </figcaption></figure></body></html>"),
-
-    ("<html><body><figure><img src='image4.jpg' alt='Image 4'><figcaption>Caption 4</figcaption></figure></body></html>",
-     "<html><body><figure><img src='image4.jpg' alt='Image 4'><figcaption>Caption 4</figcaption></figure></body></html>"),
-
-    ("<html><body><p>No figcaption here</p></body></html>",
-     "<html><body><p>No figcaption here</p></body></html>"),
-])
+@pytest.mark.parametrize(
+    "html_input, expected_output",
+    [
+        (
+            "<html><body><figure><img src='image1.jpg' alt='Image 1'><figcaption>Caption 1 |500</figcaption></figure></body></html>",
+            "<html><body><figure><img src='image1.jpg' alt='Image 1'><figcaption>Caption 1 </figcaption></figure></body></html>",
+        ),
+        (
+            "<html><body><figure><img src='image2.jpg' alt='Image 2'><figcaption>Caption 2 |x600</figcaption></figure></body></html>",
+            "<html><body><figure><img src='image2.jpg' alt='Image 2'><figcaption>Caption 2 </figcaption></figure></body></html>",
+        ),
+        (
+            "<html><body><figure><img src='image3.jpg' alt='Image 3'><figcaption>Caption 3 |640x480</figcaption></figure></body></html>",
+            "<html><body><figure><img src='image3.jpg' alt='Image 3'><figcaption>Caption 3 </figcaption></figure></body></html>",
+        ),
+        (
+            "<html><body><figure><img src='image4.jpg' alt='Image 4'><figcaption>Caption 4</figcaption></figure></body></html>",
+            "<html><body><figure><img src='image4.jpg' alt='Image 4'><figcaption>Caption 4</figcaption></figure></body></html>",
+        ),
+        (
+            "<html><body><p>No figcaption here</p></body></html>",
+            "<html><body><p>No figcaption here</p></body></html>",
+        ),
+    ],
+)
 def test_remove_image_sizing_from_captions(html_input, expected_output):
     """
     Test the remove_image_sizing_from_captions function with various input HTML strings.
