@@ -341,12 +341,47 @@ def find_html_images(html_source: str) -> list[str]:
     return re.findall(image_re, html_source)
 
 
-def replace_image_sources(html_source: str) -> str:
-    """Replace links to images with the correct path."""
-    prefix = "../static/post_images"
-    for image in find_html_images(html_source):
-        html_source = html_source.replace(image, f"{prefix}/{image}")
-    return html_source
+def replace_image_sources(html_source: str, prefix: str = "../static/post_images") -> str:
+    """Replace image sources with the correct path, and create links to any full-size
+    images that exist.
+
+    The correct path is created by prepending ``prefix`` to the image path.
+
+    If there is an image in the ``IMAGES_DIRECTORY`` that matches the pattern
+    <STEM>_reduced.jpg, where <STEM> is the stem of the image file name:
+    - Replace the image with the reduced version
+    - Make a link around the `<img>` tag to the full size version
+
+    Arguments
+    ---------
+    html_source:
+        Source HTML
+    prefix:
+        Prefix to prepend to image paths
+
+    Returns
+    -------
+    HTML source with correct image paths and links to full size images
+
+    """
+    def replace_image(match):
+        img_src = match.group(1)
+        stem, ext = os.path.splitext(img_src)
+        reduced_img = f"{stem}_reduced{ext}"
+        full_img = os.path.join(IMAGES_DIRECTORY, img_src)
+
+        if os.path.exists(full_img):
+            reduced_img_path = os.path.join(prefix, reduced_img)
+            full_img_path = os.path.join(prefix, img_src)
+
+            if os.path.exists(os.path.join(IMAGES_DIRECTORY, reduced_img)):
+                return f'<a href="{full_img_path}"><img src="{reduced_img_path}" alt="" /></a>'
+            else:
+                return f'<img src="{full_img_path}" alt="" />'
+        else:
+            return match.group(0)
+
+    return re.sub(r'<img\s+src="(.*?)" alt=".*" />', replace_image, html_source)
 
 
 # TODO: Make this an optional flag
