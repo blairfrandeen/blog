@@ -81,6 +81,7 @@ def make_post(markdown_file: Optional[str] = None) -> Post:
     title, content = parse_markdown(markdown_file)
     content = replace_image_sources(content)
     content = replace_internal_links(content)
+    content = remove_image_sizing_from_captions(content)
     content = add_autoplay(content)
     handle = get_handle(title)
     with app.app_context():
@@ -496,5 +497,30 @@ def get_handle(title_str: str, max_length: int = 32) -> str:
     return "_".join(words[0:last_index]).lower()
 
 
+def remove_image_sizing_from_captions(html: str) -> str:
+    """
+    Removes any image sizing information from <figcaption> tags in HTML.
+    
+    Arguments
+    ---------
+    html: The HTML string to process.
+    
+    Returns
+    -------
+    The HTML string with image sizing information removed from <figcaption> tags.
+    """
+    
+    # Regular expression pattern to match <figcaption> tags and their content
+    figcaption_pattern = r'<figcaption>(.*?)</figcaption>'
+    
+    def remove_sizing(match):
+        # Remove the '|' and everything after it from the matched text
+        caption = match.group(1).split("|")[0]
+        return f"<figcaption>{caption}</figcaption>"
+    
+    # Replace the matched <figcaption> tags with the new content
+    cleaned_html = re.sub(figcaption_pattern, remove_sizing, html)
+    
+    return cleaned_html
 if __name__ == "__main__":
     cli()
