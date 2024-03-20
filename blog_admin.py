@@ -10,11 +10,13 @@ between the two systems, and remove the friction in doing so.
 import configparser
 import os
 import re
+import shutil
+import subprocess
 import webbrowser
 from datetime import datetime
 from itertools import accumulate
+from pathlib import Path
 from typing import Optional
-from shutil import copyfile
 
 import click
 from colorama import Fore
@@ -30,7 +32,7 @@ config = configparser.ConfigParser()
 # Check that local.cfg exists; if not, copy from default
 if not os.path.exists("local.cfg"):
     print(Fore.RED, "ERROR: ", Fore.RESET, "No configuration file found!")
-    copyfile("config/default.cfg", "local.cfg")
+    shutil.copyfile("config/default.cfg", "local.cfg")
     print("local.cfg has been created for you. Please edit local.cfg and try again.")
     exit(-1)
 
@@ -49,7 +51,7 @@ REMOTE_USER = local_config["REMOTE_USER"]
 
 
 SSH_TARGET = f"{REMOTE_USER}@{REMOTE_HOST}"
-IMAGES_DIRECTORY = "app/static/post_images"
+IMAGES_DIRECTORY = "app/build/static/post_images"
 SITE_ROOT = "datum-b.com"
 DB_FILE = "blog.db"
 
@@ -77,14 +79,17 @@ def make_post(markdown_file: Optional[str] = None) -> Post:
         # fuzzy finder search
         markdown_file = copy_post()
     title, content = parse_markdown(markdown_file)
+    summary=content.split("\n")[1]
     content = replace_image_sources(content)
     content = replace_internal_links(content)
+    content = remove_image_sizing_from_captions(content)
     content = add_autoplay(content)
     handle = get_handle(title)
     with app.app_context():
         new_post = Post(
             title=title,
             content=content,
+            summary=summary,
             handle=handle,
             visibility=Visibility.HIDDEN,
         )
@@ -240,14 +245,25 @@ def copy_post(post_file: Optional[str] = None) -> str:
     # Find any images that are part of the post
     post_images = find_markdown_images(markdown_text)
     for image in post_images:
-        img_path = copyfile(
-            os.path.join(NOTES_DIRECTORY, image[0]),
-            os.path.join(IMAGES_DIRECTORY, image[0]),
+        # check for resizing in caption:
+        resize_arg = get_resize_arg(image[1])
+        img_path = Path(image[0])
+        img_path = shutil.copyfile(
+            os.path.join(NOTES_DIRECTORY, img_path),
+            os.path.join(IMAGES_DIRECTORY, img_path),
         )
+        if resize_arg:
+            reduced_img_path = resize_image(img_path, resize_arg)
+            if reduced_img_path:
+                shutil.move(
+                    reduced_img_path,
+                    os.path.join(IMAGES_DIRECTORY, reduced_img_path),
+                )
+                print("Copied ", reduced_img_path)
         print("Copied ", img_path)
 
     # Copy the post to the local directory
-    new_path = copyfile(post_file, os.path.join(POSTS_DIRECTORY, file_name))
+    new_path = shutil.copyfile(post_file, os.path.join(POSTS_DIRECTORY, file_name))
 
     return new_path
 
@@ -327,12 +343,47 @@ def find_html_images(html_source: str) -> list[str]:
     return re.findall(image_re, html_source)
 
 
-def replace_image_sources(html_source: str) -> str:
-    """Replace links to images with the correct path."""
-    prefix = "../static/post_images"
-    for image in find_html_images(html_source):
-        html_source = html_source.replace(image, f"{prefix}/{image}")
-    return html_source
+def replace_image_sources(html_source: str, prefix: str = "../static/post_images") -> str:
+    """Replace image sources with the correct path, and create links to any full-size
+    images that exist.
+
+    The correct path is created by prepending ``prefix`` to the image path.
+
+    If there is an image in the ``IMAGES_DIRECTORY`` that matches the pattern
+    <STEM>_reduced.jpg, where <STEM> is the stem of the image file name:
+    - Replace the image with the reduced version
+    - Make a link around the `<img>` tag to the full size version
+
+    Arguments
+    ---------
+    html_source:
+        Source HTML
+    prefix:
+        Prefix to prepend to image paths
+
+    Returns
+    -------
+    HTML source with correct image paths and links to full size images
+
+    """
+    def replace_image(match):
+        img_src = match.group(1)
+        stem, ext = os.path.splitext(img_src)
+        reduced_img = f"{stem}_reduced{ext}"
+        full_img = os.path.join(IMAGES_DIRECTORY, img_src)
+
+        if os.path.exists(full_img):
+            reduced_img_path = os.path.join(prefix, reduced_img)
+            full_img_path = os.path.join(prefix, img_src)
+
+            if os.path.exists(os.path.join(IMAGES_DIRECTORY, reduced_img)):
+                return f'<a href="{full_img_path}"><img src="{reduced_img_path}" alt="" /></a>'
+            else:
+                return f'<img src="{full_img_path}" alt="" />'
+        else:
+            return match.group(0)
+
+    return re.sub(r'<img\s+src="(.*?)" alt=".*" />', replace_image, html_source)
 
 
 # TODO: Make this an optional flag
@@ -376,6 +427,76 @@ def replace_internal_links(html_str: str) -> str:
         )
     # Return new HTML string
     return html_str
+
+
+def get_resize_arg(caption: str) -> Optional[str]:
+    """Given an image caption, return the resizing argument passed to convert if an
+    image size was given."""
+    # Regular expressions to match different patterns
+    width_pattern = r"\|(\d+)$"
+    height_pattern = r"\|x(\d+)$"
+    dimensions_pattern = r"\|(\d+)x(\d+)$"
+
+    # Check for width only
+    match = re.search(width_pattern, caption)
+    if match:
+        width = match.group(1)
+        return f"{width}x>"
+
+    # Check for height only
+    match = re.search(height_pattern, caption)
+    if match:
+        height = match.group(1)
+        return f"x{height}>"
+
+    # Check for both width and height
+    match = re.search(dimensions_pattern, caption)
+    if match:
+        width, height = match.groups()
+        return f"{width}x{height}"
+
+    # If no pattern matches, return None
+    return None
+
+
+def resize_image(
+    source_path: str | os.PathLike, resize_arg: str, quality: float = 0.8
+) -> Optional[Path]:
+    """Resize an image using ImageMagick convert.
+
+    Arguments
+    ---------
+    source_path:    Path to image to resize
+    resize_arg:     Argument to pass to `convert` to resize image
+    quality:        JPG quality. Default 80.
+
+    Returns
+    -------
+    Path to reduced-size image.
+    """
+    source_path = Path(source_path).resolve()
+    if source_path.stem in [
+        ".svg",
+        ".mp4",
+        ".gif",
+    ]:  # Don't try this on svg, mp4, or gif
+        return None
+
+    out_path = source_path.parent / Path(source_path.stem + "_reduced.jpg")
+    cmd = [
+        "convert",
+        source_path,
+        "-resize",
+        resize_arg,
+        "-quality",
+        str(int(quality * 100)),
+        "-strip",
+        str(out_path),
+    ]
+    print(f"Running {cmd}")
+    subprocess.run(cmd, check=True)
+
+    return out_path
 
 
 def generate_link_href(link: tuple[str, str]) -> str:
@@ -429,6 +550,33 @@ def get_handle(title_str: str, max_length: int = 32) -> str:
     # replace spaces with underscores
     # make all lowercase
     return "_".join(words[0:last_index]).lower()
+
+
+def remove_image_sizing_from_captions(html: str) -> str:
+    """
+    Removes any image sizing information from <figcaption> tags in HTML.
+
+    Arguments
+    ---------
+    html: The HTML string to process.
+
+    Returns
+    -------
+    The HTML string with image sizing information removed from <figcaption> tags.
+    """
+
+    # Regular expression pattern to match <figcaption> tags and their content
+    figcaption_pattern = r"<figcaption>(.*?)</figcaption>"
+
+    def remove_sizing(match):
+        # Remove the '|' and everything after it from the matched text
+        caption = match.group(1).split("|")[0]
+        return f"<figcaption>{caption}</figcaption>"
+
+    # Replace the matched <figcaption> tags with the new content
+    cleaned_html = re.sub(figcaption_pattern, remove_sizing, html)
+
+    return cleaned_html
 
 
 if __name__ == "__main__":
