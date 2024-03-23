@@ -79,12 +79,14 @@ def make_post(markdown_file: Optional[str] = None) -> Post:
         # fuzzy finder search
         markdown_file = copy_post()
     title, content = parse_markdown(markdown_file)
-    summary=content.split("\n")[1]
+    handle = get_handle(title)
+    summary = content.split("\n")[1]
+    post_url = f"blog/{handle}"
+    summary = fix_summary_footnotes(summary, post_url)
     content = replace_image_sources(content)
     content = replace_internal_links(content)
     content = remove_image_sizing_from_captions(content)
     content = add_autoplay(content)
-    handle = get_handle(title)
     with app.app_context():
         new_post = Post(
             title=title,
@@ -97,6 +99,26 @@ def make_post(markdown_file: Optional[str] = None) -> Post:
         db.session.commit()
 
     return new_post
+
+
+def fix_summary_footnotes(summary_text, article_url):
+    """
+    Replaces footnote links in the given text with links to the full article.
+
+    Arguments
+    ---------
+    summary_text:
+        The text to replace footnote links in.
+    article_url:
+        The URL of the full article.
+
+    Returns
+    -------
+    The text with footnote links replaced.
+    """
+    pattern = r'href="#fn(\d+)"'
+    replacer = r'href="{}#fnref\1"'.format(article_url)
+    return re.sub(pattern, replacer, summary_text)
 
 
 @cli.command(name="freeze")
@@ -222,6 +244,22 @@ def edit_post(post_id: int) -> None:
         db.session.commit()
 
 
+@cli.command(name="summary")
+@click.argument("post_id", type=int)
+def edit_summary(post_id: int) -> None:
+    """Edit the summary of a post using vim.
+
+    Arguments:
+        post_id:    The id of the post to be edited
+                    Use `blog list` to list posts.
+    """
+    with app.app_context():
+        target_post = db.session.get(Post, post_id)
+        edited_summary = click.edit(target_post.summary, editor="vim")
+        target_post.summary = edited_summary
+        db.session.commit()
+
+
 def copy_post(post_file: Optional[str] = None) -> str:
     """Copy a target file and any associated images.
     to the posts directory. Return the path of the
@@ -308,7 +346,7 @@ def parse_markdown(markdown_file: str) -> tuple[str, str]:
     html_str = html_str.split("</h1>")[1]
     # ignore everything after the horizontal rule for now. This is a temporary
     # workaround, but is the cause of issue #27
-    html_str = html_str.split("<hr />")[0]
+    # html_str = html_str.split("<hr />")[0]
 
     return title, html_str
 
@@ -343,7 +381,9 @@ def find_html_images(html_source: str) -> list[str]:
     return re.findall(image_re, html_source)
 
 
-def replace_image_sources(html_source: str, prefix: str = "../static/post_images") -> str:
+def replace_image_sources(
+    html_source: str, prefix: str = "../static/post_images"
+) -> str:
     """Replace image sources with the correct path, and create links to any full-size
     images that exist.
 
@@ -366,6 +406,7 @@ def replace_image_sources(html_source: str, prefix: str = "../static/post_images
     HTML source with correct image paths and links to full size images
 
     """
+
     def replace_image(match):
         img_src = match.group(1)
         stem, ext = os.path.splitext(img_src)
