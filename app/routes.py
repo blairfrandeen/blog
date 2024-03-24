@@ -44,7 +44,7 @@ def blog_post(post_handle):
 
 @app.route("/feed")
 def feed():
-    feed = AtomFeed(title="Blair Frandeen", feed_url=request.url, url=request.url_root)
+    feed = AtomFeed(title="Blair Frandeen", feed_url="http://datum-b.com/feed", url="https://datum-b.com")
     posts = (
         Post.query.filter(Post.visibility == Visibility.PUBLISHED)
         .order_by(Post.post_ts.desc())
@@ -53,12 +53,12 @@ def feed():
     for post in posts:
         feed.add(
             post.title,
-            Markup(post.content),
+            post.content,
             content_type="html",
             author="Blair Frandeen",
             updated=post.post_update_ts,
             published=post.post_ts,
-            url=_get_abs_url(f"/blog/{post.handle}"),
+            url=f"https://datum-b.com/blog/{post.handle}",
         )
 
     return feed.get_response()
