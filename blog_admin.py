@@ -7,6 +7,7 @@ and the blog administration and backend is done using WSL Ubuntu.
 This set of tools exists in order to easily transfer files
 between the two systems, and remove the friction in doing so.
 """
+
 import configparser
 import os
 import re
@@ -51,7 +52,7 @@ REMOTE_USER = local_config["REMOTE_USER"]
 
 
 SSH_TARGET = f"{REMOTE_USER}@{REMOTE_HOST}"
-IMAGES_DIRECTORY = "app/build/static/post_images"
+IMAGES_DIRECTORY = "app/static/post_images"
 SITE_ROOT = "datum-b.com"
 DB_FILE = "blog.db"
 
@@ -409,8 +410,8 @@ def replace_image_sources(
 
     def replace_image(match):
         img_src = match.group(1)
-        stem, ext = os.path.splitext(img_src)
-        reduced_img = f"{stem}_reduced{ext}"
+        stem, _ext = os.path.splitext(img_src)
+        reduced_img = f"{stem}_reduced.jpg"
         full_img = os.path.join(IMAGES_DIRECTORY, img_src)
 
         if os.path.exists(full_img):
