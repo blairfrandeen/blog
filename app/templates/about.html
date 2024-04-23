@@ -1,19 +1,42 @@
 {% extends "base.html" %}
 {% block content %}
-<h2>About</h2>
-<br>
-<img src="{{url_for('static', filename='blair.jpg')}}"  style="height: 300px; width:
-auto;" alt="Beard included only with
-premium subscription.">
-<p class="entry">
-	I am a software engineer with nearly a decade of specialized experience
-	in mechanical and aerospace engineering.
-</p><p class="entry">
-	I received a bachelor's degree in mechanical engineering from Cal Poly
-	San Luis Obispo, and worked for more than 10 years at NASA's Jet Propulsion
-	Laboratory. Career highlights include installing the solid rocket motor on the
-	flying saucer and drilling holes on Mars.
-</p><p class="entry">
-	My life aspirations are being a dad, living in the woods, owning multiple dogs, and drinking coffee while listening to the rain.
-</p>
+<h1>Mission Statement</h1>
+
+<div style="display: flex; flex-wrap: wrap; justify-content: center; align-items: center;">
+  <div style="flex: 0 0 auto; padding: 10px;">
+    <img src="{{url_for('static', filename='blair.jpg')}}" style="height: 300px; width: auto;" alt="Beard included only with premium subscription.">
+  </div>
+  <div style="flex: 1 1 300px; padding: 10px; display: flex; align-items: center; max-width: 500px;">
+    <blockquote>
+      Software engineer with extensive leadership experience in aerospace and mechanical engineering. I build &amp; maintain great software tools that enable next-generation hardware development and mission operations.
+    </blockquote>
+  </div>
+</div>
+<!-- <h1>Mission Statement</h1> -->
+<!-- <br /> -->
+<!-- <img src="{{url_for('static', filename='blair.jpg')}}"  style="height: 300px; width: -->
+<!-- auto;" alt="Beard included only with -->
+<!-- premium subscription."> -->
+
+<!-- <blockquote> -->
+<!-- Software engineer with extensive leadership experience in aerospace and mechanical engineering. I build &amp; maintain great software tools that enable next-generation hardware development and mission operations. -->
+<!-- </blockquote> -->
+<ul>
+<li><p><strong>Software engineer</strong>: I’m an engineer first. I chose the title <em>software engineer</em> over others (developer, coder, programmer, hacker) because engineering is a higher calling, and entails great trust, deliberation, and responsibility. I take pride in keeping my work well-planned, well-organized, and well-documented. I recognize the importance of clear and effective communication in a professional setting.</p></li>
+<li><p><strong>Extensive leadership experience</strong>: I led the design effort for the central component of the Mars Sample Return mission, and implemented agile hardware development practices for my team in the process. Before that, I was the mechanical integration lead for SWOT, a billion dollar collaboration between NASA and CNES to measure the earth’s water cycle. I’ve led everything from a crane operation to install a 3,000 lb solid rocket motor to a flying saucer (really) and a high stakes mechanical system design review spanning three days.</p></li>
+<li><p><strong>Aerospace and mechanical engineering</strong>: I spent over a decade in the mechanical design, engineering, fabrication, and test division of the Jet Propulsion Laboratory, where I worked alongside and received mentorship from some of the best mechanisms and mechanical systems engineers in this corner of the universe. I managed a cost account worth $12.9 million and delivered over 50 pieces of custom mechanical ground support equipment.</p></li>
+<li><p><strong>I build</strong>: more often than not, I’ve recognized the need for better automation and knowledge management within my organization, and taken initiative to make it happen. From setting up an extensive Airtable database to automating mass property reports to building a tool to transform high speed impact data, I build tools to make teams perform faster. Building can mean writing software from scratch, and more often than not it means integrating existing technologies and systems to meet a business need.</p></li>
+<li><p><strong>And maintain</strong>: I’m not afraid of an aging code base. In my last role, I overhauled a library to fix stability issues and improve performance. To do this, I built test fixtures, updated documentation, eliminated the need for repeated code, and fixed many previously unknown bugs.</p></li>
+<li><p><strong>Great</strong>: Great software meets the technical and business needs of the customer, and is delivered on time and on budget, with no frills. Additionally, great software:</p>
+<ul>
+<li>Is well documented</li>
+<li>Has comprehensive error handling</li>
+<li>Has strong test coverage</li>
+<li>Is maintainable</li>
+<li>Has a beautiful user interface</li>
+<li>Can be figured out by the user <em>while they’re drunk</em>.</li>
+</ul></li>
+<li><p><strong>Software tools that enable next-generation hardware development</strong>: cutting edge hardware is complex beyond any individual’s ability to comprehend. Your hardware product is only as good as its documentation, and your speed of iteration is only as fast as your process to understand the effects of your changes. I believe that knowledge management pertaining to your hardware should speed your team up, not slow it down.</p></li>
+<li><p><strong>And mission operations</strong>: What could be more critical than designing, building, and testing your hardware in your facility? Operating it in the field. With my operations experience on the Mars Perseverance Rover, I know just how crucial it is to be able to move quickly through large amounts of data while to accurately verify flight rule compliance and go/no-go status.</p></li>
+</ul>
 {% endblock %}
