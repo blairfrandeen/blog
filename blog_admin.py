@@ -53,7 +53,7 @@ REMOTE_USER = local_config["REMOTE_USER"]
 
 SSH_TARGET = f"{REMOTE_USER}@{REMOTE_HOST}"
 IMAGES_DIRECTORY = "app/static/post_images"
-SITE_ROOT = "datum-b.com"
+SITE_ROOT = "blairfrandeen.com"  # TODO: Add to config file
 DB_FILE = "blog.db"
 
 
