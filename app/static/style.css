@@ -11,7 +11,7 @@ a:hover {
 body {
     background-color: #171614;
 }
-blockquote {
+blockquote.about {
     border: 3px solid;
     border-radius: 10px;
     font-size: 1.05em;
@@ -161,6 +161,6 @@ code span.pp { color: #bc7a00; } /* Preprocessor */
 code span.sc { color: #4070a0; } /* SpecialChar */
 code span.ss { color: #bb6688; } /* SpecialString */
 code span.st { color: #4070a0; } /* String */
-code span.va { color: #19177c; } /* Variable */
+code span.va { color: #4070a0; } /* Variable */
 code span.vs { color: #4070a0; } /* VerbatimString */
 code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
